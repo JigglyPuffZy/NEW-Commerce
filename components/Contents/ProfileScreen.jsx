@@ -17,21 +17,20 @@ export default function UserProfile() {
   ];
 
   const handleNavigation = (id) => {
-    switch (id) {
-      case '1':
-        router.push('auth/pay'); 
-        break;
-      case '2':
-        router.push('auth/ship'); // Navigate to the Ship screen
-        break;
-      case '3':
-        router.push('auth/receive'); // Navigate to the Receive screen
-        break;
-      case '4':
-        router.push('auth/rate'); // Navigate to the Rate screen
-        break;
-      default:
-        break;
+    console.log('Navigating with ID:', id); // Debugging step
+    const routes = {
+      '1': 'auth/pay',
+      '2': 'auth/ship',
+      '3': 'auth/receive',
+      '4': 'auth/rate',
+    };
+
+    const route = routes[id];
+    console.log('Navigating to route:', route); // Debugging step
+    if (route) {
+      router.push(route);
+    } else {
+      console.warn(`No route defined for ID: ${id}`);
     }
   };
 
@@ -76,15 +75,10 @@ export default function UserProfile() {
             <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity
-           onPress={() => router.push('auth/order')} 
-          style={styles.button}>
-            <Text style={styles.buttonText}>Order History</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('auth/sign-in')} 
+            onPress={() => router.push('auth/order')} 
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Logout</Text>
+            <Text style={styles.buttonText}>Order History</Text>
           </TouchableOpacity>
         </View>
       }

@@ -12,26 +12,26 @@ export default function SignUp() {
       <TextInput
         placeholder="Name"
         style={styles.input}
-        placeholderTextColor="#aaa" // Light grey placeholder text color for better contrast
+        placeholderTextColor="#888"
       />
       <TextInput
         placeholder="Email"
         style={styles.input}
         keyboardType="email-address"
         autoCapitalize="none"
-        placeholderTextColor="#aaa" // Light grey placeholder text color for better contrast
+        placeholderTextColor="#888"
       />
       <TextInput
         placeholder="Password"
         style={styles.input}
         secureTextEntry
-        placeholderTextColor="#aaa" // Light grey placeholder text color for better contrast
+        placeholderTextColor="#888"
       />
       <TextInput
         placeholder="Confirm Password"
         style={styles.input}
         secureTextEntry
-        placeholderTextColor="#aaa" // Light grey placeholder text color for better contrast
+        placeholderTextColor="#888"
       />
       
       <TouchableOpacity style={styles.signUpButton}>
@@ -53,43 +53,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#ffffff',
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 40,
     color: '#333',
     textAlign: 'center',
   },
   input: {
     height: 50,
-    borderColor: '#069305',
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#fff', // Black background color
-    color: '#000', // White text color
+    marginBottom: 20,
+    backgroundColor: '#f9f9f9',
+    color: '#333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   signUpButton: {
     backgroundColor: '#069305',
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 10,
+    shadowColor: '#069305',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
   },
   signUpButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
   },
   signInLink: {
-    marginTop: 20,
+    marginTop: 30,
     alignItems: 'center',
   },
   signInLinkText: {
     color: '#069305',
     fontSize: 16,
+    fontWeight: '500',
   },
 });

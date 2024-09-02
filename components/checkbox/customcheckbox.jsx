@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   checked: {
     backgroundColor: '#069906',
-    borderColor: '000',
+    borderColor: '#069906', // Corrected the color code
   },
 });
 

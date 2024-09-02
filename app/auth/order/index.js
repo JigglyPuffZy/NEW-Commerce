@@ -2,28 +2,24 @@ import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'rea
 import React from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 export default function OrderHistory() {
   const navigation = useNavigation();
+  const router = useRouter(); 
 
   const orders = [
     {
       id: '1',
-      image: 'https://media.karousell.com/media/photos/products/2020/9/9/small_ceramic_banga_vase_1599626824_c283af27_progressive.jpg',
-      name: 'Product 1',
-      status: 'Delivered',
-      date: 'Aug 17, 2024',
-      price: '₱20.00',
+      image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', 
+      name: 'Banga ng Aso',
+      description: '2pcs',
+      quantity: 'x1',
+      price: '₱70',
+      total: '₱140',
+      status: 'Completed',
     },
-    {
-      id: '2',
-      image: 'https://media.karousell.com/media/photos/products/2020/9/9/small_ceramic_banga_vase_1599626824_c283af27_progressive.jpg',
-      name: 'Product 2',
-      status: 'Cancelled',
-      date: 'Aug 16, 2024',
-      price: '₱35.00',
-    },
-    // Add more orders as needed
+    
   ];
 
   return (
@@ -31,24 +27,35 @@ export default function OrderHistory() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <FontAwesome5 name="arrow-left" size={20} color="#fff" />
+          <FontAwesome5 name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Order History</Text>
       </View>
 
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {orders.map(order => (
           <View key={order.id} style={styles.orderCard}>
-            <Image source={{ uri: order.image }} style={styles.productImage} />
-            <View style={styles.orderDetails}>
-              <Text style={styles.productName}>{order.name}</Text>
-              <Text style={styles.orderStatus}>{order.status}</Text>
-              <Text style={styles.orderDate}>{order.date}</Text>
-              <Text style={styles.productPrice}>{order.price}</Text>
+            <View style={styles.orderHeader}>
+              <Text style={[styles.statusBadge, { backgroundColor: order.status === 'Completed' ? '#4CAF50' : '#FF5722' }]}>{order.status}</Text>
             </View>
-            <TouchableOpacity style={styles.arrowIcon}>
-              <FontAwesome5 name="chevron-right" size={16} color="#333" />
-            </TouchableOpacity>
+            <View style={styles.orderContent}>
+              <Image source={{ uri: order.image }} style={styles.productImage} />
+              <View style={styles.orderDetails}>
+                <Text style={styles.productName}>{order.name}</Text>
+                <Text style={styles.productDescription}>{order.description}</Text>
+                <Text style={styles.productQuantity}>{order.quantity}</Text>
+                <Text style={styles.productPrice}>{order.price}</Text>
+                <Text style={styles.totalPrice}>Total 1 item: {order.total}</Text>
+              </View>
+            </View>
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity 
+                onPress={() => router.push('auth/products')} 
+                style={styles.buyAgainButton}
+              >
+                <Text style={styles.buttonText}>Buy Again</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -65,58 +72,112 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#069906',
-    padding: 15,
-    marginTop: 30,
-    marginBottom: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    marginBottom: 14,
   },
   backButton: {
-    paddingRight: 10,
+    paddingRight: 20,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
   },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   orderCard: {
-    flexDirection: 'row',
     backgroundColor: '#fff',
     padding: 15,
-    marginBottom: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statusBadge: {
+    color: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  orderContent: {
+    flexDirection: 'row',
+    marginTop: 10,
   },
   productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: 120,
+    height: 120,
+    borderRadius: 12,
     marginRight: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    resizeMode: 'cover',
   },
   orderDetails: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   productName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
   },
-  orderStatus: {
+  productDescription: {
     fontSize: 14,
-    color: '#f39c12',
-    marginBottom: 5,
-  },
-  orderDate: {
-    fontSize: 12,
     color: '#888',
     marginBottom: 5,
   },
+  productQuantity: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+  },
   productPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 5,
   },
-  arrowIcon: {
-    padding: 10,
+  totalPrice: {
+    fontSize: 14,
+    color: '#888',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    justifyContent: 'flex-end',
+  },
+  buyAgainButton: {
+    backgroundColor: '#069906',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

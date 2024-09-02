@@ -1,12 +1,16 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, SafeAreaView, ScrollView, Animated } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import { Colors } from './../../../constants/Colors';
+import { Feather } from '@expo/vector-icons';
 
 export default function Index() {
   const navigation = useNavigation();
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(1)); // Initial opacity is 1 (fully visible)
+  const [scaleAnim] = useState(new Animated.Value(1)); // Initial scale is 1 (normal size)
 
   useEffect(() => {
     navigation.setOptions({
@@ -19,39 +23,75 @@ export default function Index() {
   };
 
   const selectRole = (role) => {
-    setModalVisible(false);
-    if (role === 'buyer') {
-      router.push('auth/home'); // Navigate to the buyer's home screen
-    } else {
-      router.push('auth/seller'); // Navigate to the seller's home screen
-    }
+    // Combine fade and scale animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0, // Fade out to opacity 0
+        duration: 500, // Animation duration (in milliseconds)
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1.2, // Slightly increase size
+        friction: 3, // Control the bounce effect
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setModalVisible(false);
+      if (role === 'buyer') {
+        router.push('auth/home');
+      } else {
+        router.push('auth/seller');
+      }
+      fadeAnim.setValue(1); // Reset the opacity for the next time the modal is shown
+      scaleAnim.setValue(1); // Reset the scale for the next time the modal is shown
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Let's Sign You In</Text>
-      <Text style={styles.subtitle}>Welcome Back, we've missed you!</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        {/* Header */}
+        <Text style={styles.title}>Let's Sign You In</Text>
+        <Text style={styles.subtitle}>Welcome Back, we've missed you!</Text>
 
-      <View style={styles.inputContainer}>
-        <Text>Email</Text>
-        <TextInput style={styles.input} placeholder="Enter Email" />
-      </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
-      <View style={styles.inputContainer}>
-        <Text>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Password"
-          secureTextEntry={true}
-        />
-        
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Enter Password"
+              secureTextEntry={!passwordVisible}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setPasswordVisible(!passwordVisible)}
+            >
+              <Feather
+                name={passwordVisible ? 'eye-off' : 'eye'}
+                size={20}
+                color={Colors.DARK_GRAY}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Sign In Button */}
         <TouchableOpacity 
-        onPress={handleSignIn}
-        style={styles.signInButton}>
+          onPress={handleSignIn}
+          style={styles.signInButton}>
           <Text style={styles.signInButtonText}>Sign In</Text>
-        </TouchableOpacity >
-        
+        </TouchableOpacity>
+          
         {/* Create Account Button */}
         <TouchableOpacity
           onPress={() => router.push('auth/sign-up')}
@@ -59,7 +99,7 @@ export default function Index() {
         >
           <Text style={styles.createAccountButtonText}>Create Account</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* Modal for selecting role */}
       <Modal
@@ -69,7 +109,7 @@ export default function Index() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+          <Animated.View style={[styles.modalContent, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
             <Text style={styles.modalTitle}>Select Your Role</Text>
             <TouchableOpacity
               style={styles.modalButton}
@@ -85,68 +125,103 @@ export default function Index() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.modalCloseButton}
-              onPress={() => setModalVisible(false)} // Close the modal on cancel
+              onPress={() => setModalVisible(false)}
             >
               <Text style={styles.modalCloseButtonText}>Cancel</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 25,
+    flex: 1,
     backgroundColor: Colors.WHITE,
-    marginTop: 60,
-    height: '100%',
+  },
+  scrollViewContainer: {
+    padding: 20,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   title: {
     fontFamily: 'Poppins-bold',
-    fontSize: 32,
+    fontSize: 28,
     color: Colors.PRIMARY,
     textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontFamily: 'Poppins-medium',
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.GRAY,
     textAlign: 'center',
-    marginTop: 10,
+    marginBottom: 24,
   },
   inputContainer: {
-    marginTop: 30,
+    marginBottom: 16,
+  },
+  label: {
+    fontFamily: 'Poppins-medium',
+    fontSize: 14,
+    color: Colors.DARK_GRAY,
+    marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.GRAY,
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 15,
+    borderColor: Colors.LIGHT_GRAY,
+    padding: 12,
+    borderRadius: 8,
+    fontFamily: 'Poppins-regular',
+    fontSize: 14,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.LIGHT_GRAY,
+    borderRadius: 8,
+    backgroundColor: Colors.WHITE,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontFamily: 'Poppins-regular',
+    fontSize: 14,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   signInButton: {
-    padding: 20,
-    backgroundColor: Colors.WHITE,
-    borderRadius: 15,
-    marginTop: 50,
-    borderWidth: 1,
-    borderColor: Colors.PRIMARY,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.PRIMARY,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+    elevation: 2,
   },
   signInButtonText: {
-    color: Colors.PRIMARY,
-    textAlign: 'center',
+    color: Colors.WHITE,
+    fontFamily: 'Poppins-medium',
+    fontSize: 16,
   },
   createAccountButton: {
-    padding: 20,
-    backgroundColor: Colors.PRIMARY,
-    borderRadius: 15,
-    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.LIGHT_GRAY,
+    borderRadius: 8,
+    marginTop: 12,
+    alignItems: 'center',
+    elevation: 2,
   },
   createAccountButtonText: {
-    color: Colors.WHITE,
-    textAlign: 'center',
+    color: Colors.DARK_GRAY,
+    fontFamily: 'Poppins-medium',
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
@@ -155,40 +230,52 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: 300,
+    width: '90%',
+    maxWidth: 350,
     backgroundColor: Colors.WHITE,
-    padding: 20,
-    borderRadius: 15,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
   modalTitle: {
     fontFamily: 'Poppins-bold',
     fontSize: 20,
     color: Colors.PRIMARY,
     marginBottom: 20,
+    textAlign: 'center',
   },
   modalButton: {
     width: '100%',
-    padding: 15,
+    paddingVertical: 12,
     backgroundColor: Colors.PRIMARY,
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 8,
     alignItems: 'center',
+    elevation: 2,
   },
   modalButtonText: {
     color: Colors.WHITE,
     fontFamily: 'Poppins-medium',
+    fontSize: 16,
   },
   modalCloseButton: {
     width: '100%',
-    padding: 15,
+    paddingVertical: 12,
     backgroundColor: Colors.GRAY,
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 8,
     alignItems: 'center',
+    elevation: 2,
   },
   modalCloseButtonText: {
     color: Colors.WHITE,
     fontFamily: 'Poppins-medium',
+    fontSize: 16,
   },
 });

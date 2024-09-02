@@ -4,13 +4,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Header from '../../../components/Head/header'; 
-import HomeScreenContent from '../../../components/Contents/HomeScreen'; // Renamed to avoid conflict
+import HomeScreenContent from '../../../components/Contents/HomeScreen'; 
 import Head from '../../../components/Head/head'; 
-import CartScreenContent from '../../../components/Contents/CartScreen'; // Renamed to avoid conflict
+import CartScreenContent from '../../../components/Contents/CartScreen'; 
 import Top from '../../../components/Head/top';
-import ProfileScreenContent from '../../../components/Contents/ProfileScreen'; // Renamed to avoid conflict
+import ProfileScreenContent from '../../../components/Contents/ProfileScreen';
 import Up from '../../../components/Head/up';
-import MessageScreenContent from '../../../components/Contents/MessageScreen'; // Renamed to avoid conflict
+import MessageScreenContent from '../../../components/Contents/MessageScreen'; 
 
 // Home Screen Component
 function HomeScreen() {
@@ -28,7 +28,7 @@ function HomeScreen() {
   );
 }
 
-// Cart Screen Component
+
 function CartScreen() {
   const navigation = useNavigation();
 
@@ -44,7 +44,7 @@ function CartScreen() {
   );
 }
 
-// Profile Screen Component
+
 function ProfileScreen() {
   const navigation = useNavigation();
 
@@ -60,7 +60,7 @@ function ProfileScreen() {
   );
 }
 
-// Message Screen Component
+
 function MessageScreen() {
   const navigation = useNavigation();
 

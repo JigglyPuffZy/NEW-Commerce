@@ -1,135 +1,193 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, SafeAreaView } from 'react-native';
 import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { FontAwesome } from '@expo/vector-icons';
 
-export default function AccountSettings() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  const navigation = useNavigation();
-
-  const handleSaveChanges = () => {
-    Alert.alert('Changes Saved', 'Your settings have been updated.');
-  };
+export default function Settings() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const router = useRouter();
 
   const handleLogout = () => {
-    Alert.alert('Logged Out', 'You have been logged out.');
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    router.push('auth/sign-in');
+  };
+
+  const handleBackButtonPress = () => {
+    router.back();
+  };
+
+  const handleSaveChanges = () => {
+    setSaveModalVisible(true);
+  };
+
+  const handleCloseSaveModal = () => {
+    setSaveModalVisible(false);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.arrowButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#069906" />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackButtonPress}>
+            <FontAwesome name="arrow-left" size={24} color="#069906" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Settings</Text>
+        </View>
+
+        <View style={styles.listContainer}>
+          <TouchableOpacity onPress={() => router.push('auth/changepass')} style={styles.listItem}>
+            <Text>Change Password</Text>
+            <Text style={styles.arrow}>&gt;</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('auth/contactus')} style={styles.listItem}>
+            <Text>Contact Us</Text>
+            <Text style={styles.arrow}>&gt;</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+          <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Account Settings</Text>
+
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+
+        {/* Logout Modal */}
+        <Modal
+          transparent={true}
+          animationType="fade"
+          visible={modalVisible}
+          onRequestClose={handleCloseModal}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Successfully logged out</Text>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCloseModal}>
+                <Text style={styles.modalButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
+
+        {/* Save Changes Modal */}
+        <Modal
+          transparent={true}
+          animationType="fade"
+          visible={saveModalVisible}
+          onRequestClose={handleCloseSaveModal}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Successfully saved changes</Text>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCloseSaveModal}>
+                <Text style={styles.modalButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <View style={styles.settingsSection}>
-        <Text style={styles.settingTitle}>Enable Notifications</Text>
-        <Switch
-          value={notificationsEnabled}
-          onValueChange={setNotificationsEnabled}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={notificationsEnabled ? "#f5dd4b" : "#f4f3f4"}
-        />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
-        <Text style={styles.buttonText}>Save Changes</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f8f8f8',
   },
-  headerContainer: {
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  arrowButton: {
-    marginRight: 10,
-    marginTop: 7,
+  backButton: {
+    padding: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#069906',
+    marginLeft: 8,
   },
-  input: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    fontSize: 16,
+  listContainer: {
+    marginBottom: 16,
   },
-  settingsSection: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
+  listItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  button: {
-    backgroundColor: '#069906',
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
     alignItems: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#fff',
   },
-  buttonText: {
+  arrow: {
+    fontSize: 18,
+    color: '#069906',
+  },
+  saveButton: {
+    backgroundColor: '#069906',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  saveButtonText: {
     color: '#fff',
     fontSize: 16,
   },
-  logoutButton: {
-    padding: 15,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: '#FF5722',
+  logoutText: {
+    color: '#f87171',
+    textAlign: 'center',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '90%',
+    maxWidth: 400,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  modalText: {
+    fontSize: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
+  },
+  modalButton: {
+    backgroundColor: '#069906',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '100%',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 18,
   },
 });

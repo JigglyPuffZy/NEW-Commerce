@@ -1,184 +1,283 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import CustomCheckbox from '../checkbox/customcheckbox';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
+import CustomCheckbox from '../../components/checkbox/customcheckbox'; // Ensure CustomCheckbox is correctly implemented
+import { useRouter } from 'expo-router';
 
-const cartItems = [
-  { id: '1', name: 'Item 1', price: '₱10.00', quantity: 1, image: require('./../../assets/images/Banga 2.jpg') },
-  { id: '2', name: 'Item 2', price: '₱15.00', quantity: 2, image: require('./../../assets/images/Banga 3.jpg') },
-  { id: '3', name: 'Item 3', price: '₱40.00', quantity: 1, image: require('./../../assets/images/Banga 4.jpg') },
-];
+export default function Widget() {
+  const [checkedItems, setCheckedItems] = useState({
+    item1: { checked: false, quantity: 1 },
+    item2: { checked: false, quantity: 1 },
+  });
+  const [totalPrice, setTotalPrice] = useState(0);
 
-const BodyScreen = () => {
-  const [items, setItems] = useState(cartItems);
-  const [checkedItems, setCheckedItems] = useState({});
+  const router = useRouter();
 
-  const handleCheckboxChange = (itemId) => {
-    setCheckedItems(prevState => ({
-      ...prevState,
-      [itemId]: !prevState[itemId],
-    }));
+  const itemPrices = {
+    item1: 299.00,
+    item2: 399.00,
   };
 
-  const handleQuantityChange = (itemId, change) => {
-    setItems(prevItems => prevItems.map(item =>
-      item.id === itemId ? { ...item, quantity: Math.max(1, item.quantity + change) } : item
-    ));
+  const toggleCheckbox = (itemKey) => {
+    setCheckedItems((prev) => {
+      const newCheckedItems = {
+        ...prev,
+        [itemKey]: {
+          ...prev[itemKey],
+          checked: !prev[itemKey].checked,
+        },
+      };
+
+      const newTotalPrice = Object.keys(newCheckedItems)
+        .filter(key => newCheckedItems[key].checked)
+        .reduce((sum, key) => sum + itemPrices[key] * newCheckedItems[key].quantity, 0);
+        
+      setTotalPrice(newTotalPrice);
+
+      return newCheckedItems;
+    });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <CustomCheckbox
-        isChecked={!!checkedItems[item.id]}
-        onCheck={() => handleCheckboxChange(item.id)}
-      />
-      <Image source={item.image} style={styles.itemImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>{item.price}</Text>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => handleQuantityChange(item.id, -1)}
-          >
-            <Text style={styles.quantityButtonText}>-</Text>
-          </TouchableOpacity>
-          <Text style={styles.itemQuantity}>{item.quantity}</Text>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => handleQuantityChange(item.id, 1)}
-          >
-            <Text style={styles.quantityButtonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
+  const changeQuantity = (itemKey, change) => {
+    setCheckedItems((prev) => {
+      const newQuantity = Math.max(prev[itemKey].quantity + change, 1);
+      const newCheckedItems = {
+        ...prev,
+        [itemKey]: {
+          ...prev[itemKey],
+          quantity: newQuantity,
+        },
+      };
 
-  const calculateTotal = () => {
-    return items.reduce((total, item) => {
-      if (checkedItems[item.id]) {
-        return total + parseFloat(item.price.replace('₱', '')) * item.quantity;
-      }
-      return total;
-    }, 0).toFixed(2);
+      const newTotalPrice = Object.keys(newCheckedItems)
+        .filter(key => newCheckedItems[key].checked)
+        .reduce((sum, key) => sum + itemPrices[key] * newCheckedItems[key].quantity, 0);
+
+      setTotalPrice(newTotalPrice);
+
+      return newCheckedItems;
+    });
+  };
+
+  const handleCheckout = () => {
+    const selectedItemsCount = Object.keys(checkedItems).filter(key => checkedItems[key].checked).length;
+
+    console.log('Checked items:', checkedItems); // Debugging line
+    console.log('Selected items count:', selectedItemsCount); // Debugging line
+
+    if (selectedItemsCount === 0) {
+      Alert.alert(
+        'Error',
+        'Please check an item before checking out',
+        [{ text: 'OK' }],
+        { cancelable: false }
+      );
+    } else {
+      router.push('auth/payment');
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Your Cart</Text>
-      <FlatList
-        data={items}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.itemList}
-      />
-      <View style={styles.footer}>
-        <Text style={styles.totalText}>Total: ₱{calculateTotal()}</Text>
-        <TouchableOpacity style={styles.checkoutButton}>
-          <Text style={styles.checkoutText}>Proceed to Checkout</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          {/* Item 1 */}
+          <View style={styles.itemContainer}>
+            <View style={styles.itemHeader}>
+              <View style={styles.checkboxContainer}>
+                <CustomCheckbox
+                  isChecked={checkedItems.item1.checked}
+                  onCheck={() => toggleCheckbox('item1')}
+                />
+                <Text style={styles.itemHeaderText}>Banga Shop</Text>
+              </View>
+            </View>
+            <View style={styles.itemContent}>
+              <Image source={{ uri: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg' }} style={styles.itemImage} />
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName}>Kainan ng Aso</Text>
+                <Text style={styles.itemDescription}>Height 100, Width 30</Text>
+                <Text style={styles.itemPrice}>₱{itemPrices.item1.toLocaleString()}</Text>
+              </View>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity 
+                  style={styles.quantityButton} 
+                  onPress={() => changeQuantity('item1', -1)}
+                >
+                  <Text style={styles.quantityButtonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.quantity}>{checkedItems.item1.quantity}</Text>
+                <TouchableOpacity 
+                  style={styles.quantityButton} 
+                  onPress={() => changeQuantity('item1', 1)}
+                >
+                  <Text style={styles.quantityButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Item 2 */}
+          <View style={styles.itemContainer}>
+            <View style={styles.itemHeader}>
+              <View style={styles.checkboxContainer}>
+                <CustomCheckbox
+                  isChecked={checkedItems.item2.checked}
+                  onCheck={() => toggleCheckbox('item2')}
+                />
+                <Text style={styles.itemHeaderText}>Banga Shop</Text>
+              </View>
+            </View>
+            <View style={styles.itemContent}>
+              <Image source={{ uri: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg' }} style={styles.itemImage} />
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName}>Kainan ng Aso</Text>
+                <Text style={styles.itemDescription}>Height 100, Width 30</Text>
+                <Text style={styles.itemPrice}>₱{itemPrices.item2.toLocaleString()}</Text>
+              </View>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity 
+                  style={styles.quantityButton} 
+                  onPress={() => changeQuantity('item2', -1)}
+                >
+                  <Text style={styles.quantityButtonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.quantity}>{checkedItems.item2.quantity}</Text>
+                <TouchableOpacity 
+                  style={styles.quantityButton} 
+                  onPress={() => changeQuantity('item2', 1)}
+                >
+                  <Text style={styles.quantityButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <View style={styles.totalContainer}>
+              <Text style={styles.totalText}>Total</Text>
+              <Text style={styles.totalPrice}>₱{totalPrice.toLocaleString()}</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={handleCheckout}
+              style={styles.checkoutButton}
+            >
+              <Text style={styles.checkoutText}>Check Out ({Object.keys(checkedItems).filter(key => checkedItems[key].checked).length})</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#f9f9f9',
   },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    margin: 16,
-    color: '#333',
+  container: {
+    padding: 30,
   },
-  itemList: {
-    paddingHorizontal: 16,
-  },
-  itemContainer: {
-    flexDirection: 'row',
+  card: {
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 12,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 1,
+    elevation: 3,
+    top: 60,
+  },
+  itemContainer: {
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 16,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop:25,
-    
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  itemHeaderText: {
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
   itemImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#ccc',
-    marginLeft: 20,
+    marginRight: 12,
   },
   itemDetails: {
     flex: 1,
-    marginLeft: 20,
-    justifyContent: 'center',
   },
   itemName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  itemPrice: {
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  itemDescription: {
+    fontSize: 12,
     color: '#888',
   },
-  itemQuantity: {
-    fontSize: 14,
-    color: '#555',
-    marginHorizontal: 10,
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   quantityButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 5,
     backgroundColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
   },
   quantityButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+  },
+  quantity: {
+    marginHorizontal: 8,
+    fontSize: 16,
   },
   footer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    alignItems: 'center',
+    marginTop: 16,
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   totalText: {
-    fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+  },
+  totalPrice: {
+    fontWeight: 'bold',
+    color: '#28a745', // Changed to green
   },
   checkoutButton: {
+    backgroundColor: '#28a745', // Changed to green
     paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#069906',
+    paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   checkoutText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
 });
-
-export default BodyScreen;

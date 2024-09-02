@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function overview() {
+export default function head() {
   return (
     <View>
-      <Text>overview</Text>
+      <Text>head</Text>
     </View>
   )
 }

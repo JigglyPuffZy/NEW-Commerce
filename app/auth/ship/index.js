@@ -1,23 +1,20 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal, Pressable } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 
-const initialPaymentData = [
+const paymentData = [
   { id: '1', name: 'Item 1', price: '₱239.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Aso', quantity: 4 },
   { id: '2', name: 'Item 2', price: '₱200.00', discountedPrice: '₱180.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Pusa', quantity: 1 },
 ];
 
 export default function ToPayScreen() {
   const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [itemToRemove, setItemToRemove] = useState(null);
-  const [paymentData, setPaymentData] = useState(initialPaymentData);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardHeaderText}>To Pay</Text>
+        <Text style={styles.cardHeaderText}>To Ship</Text>
       </View>
       <View style={styles.itemContainer}>
         <Image source={{ uri: item.image }} style={styles.itemImage} />
@@ -29,33 +26,17 @@ export default function ToPayScreen() {
       </View>
       <Text style={styles.originalPrice}>{item.price}</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-        
-        style={styles.contactButton}>
+        <TouchableOpacity style={styles.contactButton}>
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.cancelButton} 
-          onPress={() => {
-            setItemToRemove(item.id);
-            setModalVisible(true);
-          }}
-        >
+        <TouchableOpacity style={styles.cancelButton} disabled={true}>
           <FontAwesome name="times" size={16} color="#fff" />
           <Text style={styles.buttonText}> Cancel</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-
-  const handleRemoveItem = () => {
-    if (itemToRemove) {
-      setPaymentData(paymentData.filter(item => item.id !== itemToRemove));
-      setItemToRemove(null);
-      setModalVisible(false);
-    }
-  };
 
   const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '')) * item.quantity), 0);
   const itemCount = paymentData.reduce((count, item) => count + item.quantity, 0);
@@ -66,7 +47,7 @@ export default function ToPayScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <FontAwesome name="arrow-left" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitleText}>To Pay</Text>
+        <Text style={styles.headerTitleText}>To Ship</Text>
       </View>
       <FlatList
         data={paymentData}
@@ -88,28 +69,6 @@ export default function ToPayScreen() {
           <Text style={styles.totalText}>₱{totalAmount.toFixed(2)}</Text>
         </View>
       </View>
-
-      {/* Modal for Cancel Confirmation */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Are you sure you want to cancel?</Text>
-            <View style={styles.modalButtons}>
-              <Pressable style={styles.modalButtonYes} onPress={handleRemoveItem}>
-                <Text style={styles.modalButtonText}>Yes</Text>
-              </Pressable>
-              <Pressable style={styles.modalButtonNo} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalButtonText}>No</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -196,7 +155,7 @@ const styles = StyleSheet.create({
   originalPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#33A853', 
+    color: '#33A853', // Green color
     marginBottom: 15,
   },
   buttonContainer: {
@@ -221,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#FF0000', 
+    backgroundColor: '#B0B0B0', // Grey color
     borderRadius: 8,
     justifyContent: 'center',
   },
@@ -262,45 +221,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#33A853',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  modalButtonYes: {
-    backgroundColor: '#069906',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  modalButtonNo: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

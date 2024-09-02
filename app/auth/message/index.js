@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, Image, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -26,7 +26,7 @@ export default function ConversationScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.arrowButton} onPress={() => navigation.goBack()}>
@@ -38,7 +38,7 @@ export default function ConversationScreen() {
             style={styles.profilePicture}
           />
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerText}>Ronnie Bulauan</Text>
+            <Text style={styles.headerText}>Ronnie DUlit Bulauan</Text>
             <Text style={styles.activeStatus}>Active Now</Text>
           </View>
         </View>
@@ -67,7 +67,7 @@ export default function ConversationScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -79,46 +79,61 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 30,
+    paddingVertical: 20,
+    paddingHorizontal: 15,
     backgroundColor: '#069906',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    top:20,
   },
   profilePicture: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   headerTextContainer: {
     justifyContent: 'center',
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
   },
   activeStatus: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#d0d0d0',
   },
   arrowButton: {
-    marginRight: 10,
-    top:20,
+    marginRight: 15,
   },
   messagesList: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     paddingBottom: 10,
   },
   messageContainer: {
-    padding: 10,
+    padding: 12,
     borderRadius: 20,
     marginVertical: 5,
     maxWidth: '75%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   userMessage: {
     alignSelf: 'flex-end',
@@ -139,6 +154,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   input: {
     flex: 1,
