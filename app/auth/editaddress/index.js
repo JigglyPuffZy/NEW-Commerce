@@ -4,17 +4,17 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 
 const EditAddress = () => {
-  const [modalVisible, setModalVisible] = useState(false); // State to control the modal visibility
-  const navigation = useNavigation(); // For navigating back
+  const [modalVisible, setModalVisible] = useState(false); 
+  const navigation = useNavigation();
 
   const handleAddAddress = () => {
-    // Handle address submission logic here
-    setModalVisible(true); // Show the modal on address addition
+    
+    setModalVisible(true); 
   };
 
   const handleCloseModal = () => {
-    setModalVisible(false); // Hide the modal
-    navigation.goBack(); // Navigate back to the previous page
+    setModalVisible(false)
+    navigation.goBack(); 
   };
 
   return (

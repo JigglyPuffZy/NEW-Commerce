@@ -5,7 +5,7 @@ export default function Header() {
   return (
     <View style={styles.headerBackground}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Seller Profile</Text>
+        <Text style={styles.headerText}>Messages</Text>
       </View>
     </View>
   );
