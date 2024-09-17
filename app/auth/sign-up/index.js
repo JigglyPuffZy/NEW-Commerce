@@ -34,7 +34,9 @@ export default function SignUp() {
         placeholderTextColor="#888"
       />
       
-      <TouchableOpacity style={styles.signUpButton}>
+      <TouchableOpacity
+              onPress={() => router.push('auth/sign-in')}
+      style={styles.signUpButton}>
         <Text style={styles.signUpButtonText}>Create Account</Text>
       </TouchableOpacity>
       

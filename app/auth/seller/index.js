@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Content from '../../../components/sellerhome/content';
 import MessageScreenContent from '../../../components/sellermessage/MessageScreenContent';
 import MessageHead from '../../../components/sellermessage/MessageHead';
-import SellerHeader from '../../../components/sellerhome/SellerHeader';
+
 
 
 // Home Screen Component
@@ -19,15 +19,11 @@ function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-  <SellerHeader />
+
       <Content />
     </View>
   );
 }
-
-
-
-
 
 
 function MessageScreen() {

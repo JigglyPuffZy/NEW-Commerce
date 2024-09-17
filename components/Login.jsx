@@ -1,5 +1,5 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 
 const Colors = {
@@ -11,9 +11,34 @@ const Colors = {
 
 export default function Login() {
   const router = useRouter();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [animationCompleted, setAnimationCompleted] = useState(false);
+
+  const handleGetStarted = () => {
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setAnimationCompleted(true);
+      router.push('auth/sign-in');
+    });
+  };
+
+  if (animationCompleted) {
+    return null; // You can replace this with your splash screen or a loading screen.
+  }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}>
       <View style={styles.imageContainer}>
         <Image
           source={require('./../assets/images/login.png')}
@@ -25,12 +50,10 @@ export default function Login() {
         Empowering our community, one banga at a time. Together, let us discover, connect and thrive in the world of unique bangas.
         </Text>
       </View>
-      <TouchableOpacity style={styles.button}
-      onPress={()=>router.push('auth/sign-in')}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
         <Text style={styles.buttonText}>Let's Get Started</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 

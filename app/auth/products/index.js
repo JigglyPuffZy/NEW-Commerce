@@ -123,7 +123,9 @@ export default function ProductScreen() {
           >
             <Text style={styles.buttonText}>BUY NOW</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, { backgroundColor: '#069906' }]}>
+          <TouchableOpacity 
+            onPress={() => router.push('auth/message')}
+          style={[styles.button, { backgroundColor: '#069906' }]}>
             <Text style={styles.buttonText}>MESSAGE SELLER</Text>
           </TouchableOpacity>
         </View>

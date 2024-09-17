@@ -38,7 +38,7 @@ export default function ConversationScreen() {
             style={styles.profilePicture}
           />
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerText}>Ronnie DUlit Bulauan</Text>
+            <Text style={styles.headerText}>Ronnie Bulauan</Text>
             <Text style={styles.activeStatus}>Active Now</Text>
           </View>
         </View>
