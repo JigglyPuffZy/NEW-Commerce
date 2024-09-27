@@ -5,23 +5,18 @@ import { useRouter } from 'expo-router'; // Import useRouter for navigation
 
 export default function Widget() {
     const [rating, setRating] = useState(0);
+    const [comments, setComments] = useState(''); // State for comments
     const [modalVisible, setModalVisible] = useState(false);
     const router = useRouter();
 
     const getRatingIcon = (rating) => {
         switch (rating) {
-            case 1:
-                return <MaterialIcons name="mood-bad" size={30} color="red" />;
-            case 2:
-                return <MaterialIcons name="mood" size={30} color="orange" />;
-            case 3:
-                return <MaterialIcons name="mood" size={30} color="black" />;
-            case 4:
-                return <MaterialIcons name="mood" size={30} color="green" />;
-            case 5:
-                return <MaterialIcons name="mood" size={30} color="lightgreen" />;
-            default:
-                return null;
+            case 1: return '😡';
+            case 2: return '😞';
+            case 3: return '😐';
+            case 4: return '😊';
+            case 5: return '😁';
+            default: return null;
         }
     };
 
@@ -30,6 +25,8 @@ export default function Widget() {
     };
 
     const handleOkay = () => {
+        setRating(0); // Reset the rating
+        setComments(''); // Clear comments
         setModalVisible(false); // Hide the modal
         router.push('/auth/rate'); // Navigate to the desired route
     };
@@ -42,13 +39,15 @@ export default function Widget() {
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.innerContainer}>
-                    <Text style={styles.title}>"How was your order? Your feedback is invaluable to us. Please let us know how we did!"</Text>
+                    <Text style={styles.title}>
+                        "How was your order? Your feedback is invaluable to us. Please let us know how we did!"
+                    </Text>
                     <View style={styles.ratingContainer}>
                         {[1, 2, 3, 4, 5].map((star) => (
                             <TouchableWithoutFeedback key={star} onPress={() => setRating(star)}>
                                 <MaterialIcons 
                                     name={star <= rating ? "star" : "star-border"} 
-                                    size={30} 
+                                    size={40} 
                                     color={star <= rating ? "#FFD700" : "#ccc"} 
                                 />
                             </TouchableWithoutFeedback>
@@ -63,6 +62,9 @@ export default function Widget() {
                         multiline
                         numberOfLines={4}
                         placeholder="Your comments..."
+                        placeholderTextColor="#999" // Placeholder text color
+                        value={comments}
+                        onChangeText={setComments} // Update comments state
                     />
                 </View>
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
@@ -114,17 +116,19 @@ const styles = StyleSheet.create({
         color: '#333333', // Title text color
         textAlign: 'center',
         marginBottom: 12,
+        lineHeight: 26, // Increase line height for better readability
     },
     ratingContainer: {
         flexDirection: 'row',
         marginBottom: 8,
     },
     ratingLabel: {
-        fontSize: 30,
+        fontSize: 40,
         marginTop: 8,
     },
     commentsContainer: {
         marginBottom: 16,
+        width: '100%', // Ensure full width
     },
     label: {
         fontSize: 16,
@@ -136,20 +140,22 @@ const styles = StyleSheet.create({
         padding: 12,
         borderColor: '#cccccc', // Border color
         borderWidth: 1,
-        borderRadius: 4,
+        borderRadius: 10, // More rounded corners
         backgroundColor: '#f9f9f9',
+        elevation: 1, // Add slight elevation for shadow
     },
     submitButton: {
         backgroundColor: '#069305', // Primary color
         paddingVertical: 12,
-        borderRadius: 8,
+        borderRadius: 10, // More rounded corners
         alignItems: 'center',
         marginTop: 24,
+        elevation: 4, // Adds a shadow effect on Android
     },
     submitButtonText: {
         color: '#ffffff', // Text color for the button
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 18, // Slightly larger font size
     },
     modalContainer: {
         flex: 1,
@@ -158,10 +164,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
+        width: '85%', // Adjust width for better mobile experience
         padding: 20,
         backgroundColor: '#ffffff',
-        borderRadius: 8,
+        borderRadius: 16, // Make corners rounded
         alignItems: 'center',
         elevation: 5, // Adds a shadow effect on Android
     },
@@ -173,7 +179,7 @@ const styles = StyleSheet.create({
         borderRadius: 50,
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
@@ -188,8 +194,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#069305', // Primary color
         paddingVertical: 12,
         paddingHorizontal: 24,
-        borderRadius: 8,
+        borderRadius: 10, // More rounded corners
         alignItems: 'center',
+        elevation: 2, // Adds a shadow effect on Android
     },
     modalButtonText: {
         color: '#ffffff', // Text color for the button

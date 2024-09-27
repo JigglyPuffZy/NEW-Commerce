@@ -1,69 +1,79 @@
-import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Animated, Dimensions } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { BarChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function SellerDashboard() {
   const screenWidth = Dimensions.get('window').width;
+  const router = useRouter(); 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [ordersModalVisible, setOrdersModalVisible] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [ordersFadeAnim] = useState(new Animated.Value(0));
 
-  // Data for the Sales chart
   const salesData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        data: [5000, 8000, 6000, 7000, 9000, 10000], // Example sales data
-      },
-    ],
+    datasets: [{ data: [5000, 8000, 6000, 7000, 9000, 10000] }],
   };
 
-  // Data for the Orders chart
   const ordersData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        data: [20, 35, 28, 40, 55, 60], // Example orders data
-      },
-    ],
+    datasets: [{ data: [20, 35, 28, 40, 55, 60] }],
+  };
+
+  const toggleModal = () => {
+    if (modalVisible) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setModalVisible(false));
+    } else {
+      setModalVisible(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const toggleOrdersModal = () => {
+    if (ordersModalVisible) {
+      Animated.timing(ordersFadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setOrdersModalVisible(false));
+    } else {
+      setOrdersModalVisible(true);
+      Animated.timing(ordersFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Seller Dashboard</Text>
-        <TouchableOpacity style={styles.settingsButton}>
+        <TouchableOpacity onPress={() => router.push('/auth/settings')} style={styles.settingsButton}>
           <FontAwesome name="cog" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         {/* Sales Summary Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sales Summary</Text>
           <BarChart
             data={salesData}
-            width={screenWidth - 24} // Width of the chart
-            height={250}
+            width={screenWidth * 0.85}
+            height={220}
             yAxisLabel="₱"
-            chartConfig={{
-              backgroundColor: '#4CAF50',
-              backgroundGradientFrom: '#43A047',
-              backgroundGradientTo: '#66BB6A',
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              barRadius: 12, // Rounded bars
-              barPercentage: 0.6, // Adjusted bar spacing
-              style: {
-                borderRadius: 16,
-              },
-              propsForBackgroundLines: {
-                strokeWidth: 1,
-                stroke: '#e3e3e3',
-              },
-              fillShadowGradient: '#43A047', // Bar fill color
-              fillShadowGradientOpacity: 0.85,
-              animationDuration: 1500, // Animation duration
-            }}
+            chartConfig={chartConfig}
             verticalLabelRotation={30}
             style={styles.chart}
           />
@@ -71,37 +81,52 @@ export default function SellerDashboard() {
             <Text style={styles.summaryText}>Total Sales: ₱ 10,000</Text>
             <Text style={styles.summaryText}>Orders: 120</Text>
             <Text style={styles.summaryText}>Revenue: ₱ 8,000</Text>
+            <TouchableOpacity onPress={toggleModal} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Show Details</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Modal for Sales Detailed Information */}
+        <Modal
+          animationType="none"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={toggleModal}
+        >
+          <View style={styles.modalOverlay}>
+            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Sales Details</Text>
+                <TouchableOpacity onPress={toggleModal}>
+                  <FontAwesome name="times" size={24} color="#069906" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalText}>Here are the details of your sales:</Text>
+              <View style={styles.detailsContainer}>
+                <Text style={styles.detailText}>- January: ₱ 5000 (20 Orders)</Text>
+                <Text style={styles.detailText}>- February: ₱ 8000 (35 Orders)</Text>
+                <Text style={styles.detailText}>- March: ₱ 6000 (28 Orders)</Text>
+                <Text style={styles.detailText}>- April: ₱ 7000 (40 Orders)</Text>
+                <Text style={styles.detailText}>- May: ₱ 9000 (55 Orders)</Text>
+                <Text style={styles.detailText}>- June: ₱ 10000 (60 Orders)</Text>
+              </View>
+              <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </Modal>
 
         {/* Orders Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Orders</Text>
           <BarChart
             data={ordersData}
-            width={screenWidth - 24} // Width of the chart
-            height={250}
+            width={screenWidth * 0.85}
+            height={220}
             yAxisLabel=""
-            chartConfig={{
-              backgroundColor: '#4CAF50',
-              backgroundGradientFrom: '#43A047',
-              backgroundGradientTo: '#66BB6A',
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              barRadius: 12, // Rounded bars
-              barPercentage: 0.6, // Adjusted bar spacing
-              style: {
-                borderRadius: 16,
-              },
-              propsForBackgroundLines: {
-                strokeWidth: 1,
-                stroke: '#e3e3e3',
-              },
-              fillShadowGradient: '#43A047', // Bar fill color
-              fillShadowGradientOpacity: 0.85,
-              animationDuration: 1500, // Animation duration
-            }}
+            chartConfig={chartConfig}
             verticalLabelRotation={30}
             style={styles.chart}
           />
@@ -109,15 +134,51 @@ export default function SellerDashboard() {
             <Text style={styles.orderText}>Pending Orders: 5</Text>
             <Text style={styles.orderText}>Shipped Orders: 100</Text>
             <Text style={styles.orderText}>Delivered Orders: 15</Text>
+            <TouchableOpacity onPress={toggleOrdersModal} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Show Details</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Modal for Orders Detailed Information */}
+        <Modal
+          animationType="none"
+          transparent={true}
+          visible={ordersModalVisible}
+          onRequestClose={toggleOrdersModal}
+        >
+          <View style={styles.modalOverlay}>
+            <Animated.View style={[styles.modalContent, { opacity: ordersFadeAnim }]}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Orders Details</Text>
+                <TouchableOpacity onPress={toggleOrdersModal}>
+                  <FontAwesome name="times" size={24} color="#069906" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalText}>Here are the details of your orders:</Text>
+              <View style={styles.detailsContainer}>
+                <Text style={styles.detailText}>- Pending Orders: 5</Text>
+                <Text style={styles.detailText}>- Shipped Orders: 100</Text>
+                <Text style={styles.detailText}>- Delivered Orders: 15</Text>
+              </View>
+              <TouchableOpacity style={styles.closeButton} onPress={toggleOrdersModal}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </Modal>
 
         {/* Quick Actions Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
-              <Text style={styles.actionButtonText}>View Product</Text>
+            <TouchableOpacity
+              onPress={() => router.push('auth/viewproducts')}
+              style={styles.actionButton}
+              activeOpacity={0.8}
+            >
+              <FontAwesome name="eye" size={18} color="#fff" />
+              <Text style={styles.actionButtonText}> View Product</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -126,110 +187,155 @@ export default function SellerDashboard() {
   );
 }
 
+const chartConfig = {
+  backgroundColor: '#ffffff',
+  backgroundGradientFrom: '#ffffff',
+  backgroundGradientTo: '#ffffff',
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  barRadius: 8,
+  barPercentage: 0.6,
+  style: {
+    borderRadius: 16,
+    paddingVertical: 5,
+    marginVertical: 10,
+  },
+  propsForBackgroundLines: {
+    strokeWidth: 1,
+    stroke: '#e3e3e3',
+  },
+  fillShadowGradient: '#43A047',
+  fillShadowGradientOpacity: 1,
+};
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
     backgroundColor: '#069906',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    padding: 15,
+    elevation: 5,
   },
   headerTitle: {
+    fontSize: 20,
     color: '#fff',
-    fontSize: 24,
     fontWeight: 'bold',
   },
   settingsButton: {
-    padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
+    padding: 5,
   },
   container: {
-    flex: 1,
-    padding: 12,
+    padding: 10,
+    alignItems: 'center',
   },
   section: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 3,
     marginVertical: 10,
+    padding: 15,
+    width: '100%',
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-    paddingHorizontal: 8,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 8,
   },
   summaryBox: {
-    backgroundColor: '#ffffff',
-    padding: 25,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 15,
+    marginTop: 10,
   },
   summaryText: {
+    fontSize: 16,
+    marginVertical: 2,
+  },
+  modalButton: {
+    backgroundColor: '#069906',
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTitle: {
     fontSize: 18,
-    color: '#444',
-    marginBottom: 10,
-    fontWeight: '500',
-    letterSpacing: 0.5,
+    fontWeight: 'bold',
+  },
+  modalText: {
+    marginVertical: 10,
+  },
+  detailsContainer: {
+    marginVertical: 10,
+  },
+  detailText: {
+    marginVertical: 2,
+  },
+  closeButton: {
+    backgroundColor: '#069906',
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   orderBox: {
-    backgroundColor: '#ffffff',
-    padding: 25,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 15,
+    marginTop: 10,
   },
   orderText: {
-    fontSize: 18,
-    color: '#444',
-    marginBottom: 10,
+    fontSize: 16,
+    marginVertical: 2,
   },
   actionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     marginTop: 10,
   },
   actionButton: {
-    backgroundColor: '#43A047',
-    paddingVertical: 16,
-    paddingHorizontal: 30,
-    borderRadius: 20,
+    flexDirection: 'row',
+    backgroundColor: '#069906',
+    padding: 10,
+    borderRadius: 5,
     alignItems: 'center',
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    transition: 'transform 0.2s ease-in-out',
+    justifyContent: 'center',
+    width: '45%',
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 18,
+    marginLeft: 5,
     fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  chart: {
-    marginVertical: 10,
-    borderRadius: 16,
   },
 });
+

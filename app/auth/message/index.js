@@ -34,7 +34,7 @@ export default function ConversationScreen() {
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Image
-            source={{ uri: 'https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/449981890_1575169576393143_1393559107253070735_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGJlmm0bjKEsd1NVOugEkCeDRfONeGNz3QNF8414Y3PdAqjwVNsVSqMEMVEy6KAXNlsYshNVpf65e1qNgPOFdnx&_nc_ohc=dAxytuuaW0cQ7kNvgHVj9Js&_nc_ht=scontent.fmnl17-2.fna&oh=00_AYBB5FhtNQOPxpwu_TQuDSyA_NDCqujHFKDOOyLAyGgbcA&oe=66CA4CE2' }} // Replace with your profile picture URL
+            source={{ uri: 'https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/449981890_1575169576393143_1393559107253070735_n.jpg' }} 
             style={styles.profilePicture}
           />
           <View style={styles.headerTextContainer}>
@@ -61,6 +61,7 @@ export default function ConversationScreen() {
             placeholder="Type a message..."
             value={newMessage}
             onChangeText={setNewMessage}
+            placeholderTextColor="#888"
           />
           <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
             <Ionicons name="send" size={24} color="white" />
@@ -86,8 +87,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   headerContent: {
     flexDirection: 'row',
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowRadius: 4,
   },
   headerTextContainer: {
     justifyContent: 'center',
@@ -138,14 +139,17 @@ const styles = StyleSheet.create({
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#069906',
+    borderBottomLeftRadius: 20,
   },
   otherMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#808080',
+    borderBottomRightRadius: 20,
   },
   messageText: {
     fontSize: 16,
     color: 'white',
+    lineHeight: 20,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -165,6 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f0f0f0',
     marginRight: 10,
+    elevation: 3,
   },
   sendButton: {
     backgroundColor: '#069906',
@@ -172,5 +177,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 2,
   },
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions, SafeAreaView, Modal, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions, SafeAreaView, Modal, Animated, Linking } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 
@@ -16,16 +16,12 @@ const calculateAverageRating = (comments) => {
 };
 
 const renderStars = (rating) => {
-  const maxRating = 5;
-  const stars = Array.from({ length: maxRating }, (_, index) => 
-    index < rating ? '★' : '☆'
-  ).join('');
-  return stars;
+  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
 };
 
 export default function ProductScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [animation] = useState(new Animated.Value(0)); // Initial opacity for modal
+  const [animation] = useState(new Animated.Value(0));
   const navigation = useNavigation();
   const router = useRouter();
   const { width } = Dimensions.get('window');
@@ -55,6 +51,14 @@ export default function ProductScreen() {
     }).start(() => setModalVisible(false));
   };
 
+  const handleCall = (phoneNumber) => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const handleChat = () => {
+    router.push('auth/message');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -64,7 +68,7 @@ export default function ProductScreen() {
             onPress={() => navigation.goBack()} 
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#ffffff" />
+            <Ionicons name="arrow-back" size={40} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Product Details</Text>
         </View>
@@ -81,7 +85,12 @@ export default function ProductScreen() {
             />
           </View>
           <View style={styles.detailsContainer}>
-            <Text style={styles.productTitle}>Banga</Text>
+            <View style={styles.productTitleContainer}>
+              <Text style={styles.productTitle}>Banga</Text>
+              <TouchableOpacity onPress={handleChat}>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#069906" style={styles.messageIcon} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.brand}>Kainan ng Aso</Text>
             <View style={styles.ratingContainer}>
               <Text style={styles.rating}>{renderStars(Math.round(averageRating))}</Text>
@@ -92,19 +101,28 @@ export default function ProductScreen() {
             <Text style={styles.description}>
               This is a traditional, handmade earthenware jar or pot. It is likely used for storage or as a decorative piece. Its dark brown color and simple design give it a rustic and antique appearance.
             </Text>
+
+            {/* Seller Information */}
+            <TouchableOpacity style={styles.sellerInfo} onPress={() => handleCall('0917-123-4567')}>
+              <Text style={styles.sellerName}>Seller: Kainan ng Aso</Text>
+              <Text style={styles.contactNumber}>Contact: 0917-123-4567</Text>
+              <Text style={styles.location}>Location: Santa Maria Mozozzing</Text>
+            </TouchableOpacity>
             
             {/* Comments Section */}
             <View style={styles.commentsSection}>
               <Text style={styles.commentsTitle}>Customer Comments</Text>
-              {comments.map((comment, index) => (
-                <View key={index} style={styles.comment}>
-                  <View style={styles.commentHeader}>
-                    <Text style={styles.commentRating}>{renderStars(comment.rating)}</Text>
-                    <Text style={styles.commentAuthor}>- {comment.author}</Text>
+              <ScrollView style={styles.commentsList}>
+                {comments.map((comment, index) => (
+                  <View key={index} style={styles.comment}>
+                    <View style={styles.commentHeader}>
+                      <Text style={styles.commentRating}>{renderStars(comment.rating)}</Text>
+                      <Text style={styles.commentAuthor}>- {comment.author}</Text>
+                    </View>
+                    <Text style={styles.commentText}>"{comment.text}"</Text>
                   </View>
-                  <Text style={styles.commentText}>"{comment.text}"</Text>
-                </View>
-              ))}
+                ))}
+              </ScrollView>
             </View>
           </View>
         </ScrollView>
@@ -113,20 +131,15 @@ export default function ProductScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             onPress={handleAddToCart} 
-            style={[styles.button, { backgroundColor: '#069906' }]}
+            style={styles.actionButton}
           >
             <Text style={styles.buttonText}>ADD TO CART</Text>
           </TouchableOpacity>
           <TouchableOpacity 
            onPress={() => router.push('auth/payment')}
-           style={[styles.button, { backgroundColor: '#069906' }]}
+           style={styles.actionButton}
           >
             <Text style={styles.buttonText}>BUY NOW</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => router.push('auth/message')}
-          style={[styles.button, { backgroundColor: '#069906' }]}>
-            <Text style={styles.buttonText}>MESSAGE SELLER</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -140,16 +153,11 @@ export default function ProductScreen() {
       >
         <View style={styles.modalContainer}>
           <Animated.View 
-            style={[
-              styles.modalContent,
-              {
-                opacity: animation,
-                transform: [
-                  { scale: animation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.7, 1]
-                  }) },
-                ],
+            style={[ 
+              styles.modalContent, 
+              { 
+                opacity: animation, 
+                transform: [{ scale: animation.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }] 
               }
             ]}
           >
@@ -210,72 +218,112 @@ const styles = StyleSheet.create({
     width: '100%',
     height: undefined,
     aspectRatio: 1,
-    borderRadius: 12,
-    resizeMode: 'contain',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#d1fae5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+    resizeMode: 'cover',
   },
   detailsContainer: {
     backgroundColor: '#ffffff',
-    padding: 16,
+    padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
     width: '100%',
     marginBottom: 20,
   },
-  productTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  productTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
+  productTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  messageIcon: {
+    marginLeft: 8, // Spacing between the title and icon
+  },
   brand: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#6b7280',
     marginBottom: 8,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginBottom: 10,
   },
   rating: {
-    color: '#fbbf24',
     fontSize: 18,
+    color: '#ffc107',
+    marginRight: 5,
   },
   ratingCount: {
-    marginLeft: 6,
+    fontSize: 14,
     color: '#6b7280',
   },
   averageRating: {
-    marginLeft: 10,
     fontSize: 16,
-    color: '#6b7280',
+    marginLeft: 10,
+    color: '#333333',
   },
   price: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginVertical: 12,
+    color: '#069906',
+    marginBottom: 12,
   },
   description: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 20,
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 12,
   },
-  commentsSection: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 10,
+  sellerInfo: {
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  commentsTitle: {
+  sellerName: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
+  },
+  contactNumber: {
+    fontSize: 14,
+    color: '#069906',
+  },
+  location: {
+    fontSize: 14,
+    color: '#333333',
+  },
+  commentsSection: {
+    marginTop: 16,
+  },
+  commentsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  commentsList: {
+    maxHeight: 200,
   },
   comment: {
     marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
   },
   commentHeader: {
     flexDirection: 'row',
@@ -283,61 +331,54 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   commentRating: {
-    color: '#fbbf24',
     fontSize: 16,
+    color: '#ffc107',
+    marginRight: 5,
   },
   commentAuthor: {
-    marginLeft: 6,
-    color: '#374151',
     fontSize: 14,
     fontWeight: 'bold',
   },
   commentText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#333333',
   },
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#f8f8f8',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    zIndex: 10,
+    backgroundColor: '#ffffff',
+    width: '100%',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  button: {
-    backgroundColor: '#069906',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+  actionButton: {
     flex: 1,
+    backgroundColor: '#069906',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
     marginHorizontal: 5,
   },
   buttonText: {
+    fontSize: 16,
     color: '#ffffff',
-    fontSize: 13,
     fontWeight: 'bold',
-    textAlign:'center'
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
+    width: '80%',
     alignItems: 'center',
-    width: 300,
   },
   modalText: {
     fontSize: 18,
@@ -345,14 +386,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalButton: {
-    backgroundColor: '#069906',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 6,
+    backgroundColor: '#069906',
+    borderRadius: 8,
+    alignItems: 'center',
   },
   modalButtonText: {
-    color: '#ffffff',
     fontSize: 16,
+    color: '#ffffff',
     fontWeight: 'bold',
   },
 });

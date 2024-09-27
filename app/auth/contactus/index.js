@@ -1,11 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 export default function ContactUs() {
   const router = useRouter();
+
+  const handlePhonePress = () => {
+    Linking.openURL('tel:+639175556789'); 
+  };
+
+  const handleEmailPress = () => {
+    Linking.openURL('mailto:viahdaquioag@gmail.com'); 
+  };
+
+  const handleFacebookPress = () => {
+    Linking.openURL('https://www.facebook.com/your-facebook-username'); // Replace with your Facebook profile link
+  };
+
+  const handleInstagramPress = () => {
+    Linking.openURL('https://www.instagram.com/your-instagram-username'); // Replace with your Instagram profile link
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,30 +41,30 @@ export default function ContactUs() {
             <Text style={styles.description}>If you have any inquiries, get in touch with us. We'll be happy to help you.</Text>
             
             <View style={styles.contactInfo}>
-              <View style={styles.contactItem}>
+              <TouchableOpacity style={styles.contactItem} onPress={handlePhonePress}>
                 <FontAwesome name="phone" size={20} color="#069906" style={styles.contactIcon} />
                 <Text style={styles.contactText}>+63 (917) 555-6789</Text>
-              </View>
-              <View style={styles.contactItem}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.contactItem} onPress={handleEmailPress}>
                 <FontAwesome name="envelope" size={20} color="#069906" style={styles.contactIcon} />
                 <Text style={styles.contactText}>viahdaquioag@gmail.com</Text>
-              </View>
+              </TouchableOpacity>
             </View>
             
             <Text style={styles.subHeader}>Social Media</Text>
             <View style={styles.socialMediaList}>
-              <View style={styles.socialMediaItem}>
+              <TouchableOpacity style={styles.socialMediaItem} onPress={handleFacebookPress}>
                 <FontAwesome name="facebook" size={20} color="#1877f2" style={styles.socialMediaIcon} />
                 <Text style={styles.socialMediaText}>
                   <Text style={styles.socialMediaTitle}>Facebook:</Text> Viah Saquing Daquioag.
                 </Text>
-              </View>
-              <View style={styles.socialMediaItem}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialMediaItem} onPress={handleInstagramPress}>
                 <FontAwesome name="instagram" size={20} color="#e1306c" style={styles.socialMediaIcon} />
                 <Text style={styles.socialMediaText}>
                   <Text style={styles.socialMediaTitle}>Instagram:</Text> Viah Saquing Daquioag.
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

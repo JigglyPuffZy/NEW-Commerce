@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal, Animated } from 'react-native';
+import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -10,6 +10,25 @@ const paymentData = [
 
 export default function ToPayScreen() {
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0)); // For fade-in animation
+
+  const openModal = () => {
+    setModalVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setModalVisible(false));
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -30,7 +49,7 @@ export default function ToPayScreen() {
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} disabled={true}>
+        <TouchableOpacity style={styles.cancelButton} onPress={openModal}>
           <FontAwesome name="times" size={16} color="#fff" />
           <Text style={styles.buttonText}> Cancel</Text>
         </TouchableOpacity>
@@ -69,6 +88,24 @@ export default function ToPayScreen() {
           <Text style={styles.totalText}>₱{totalAmount.toFixed(2)}</Text>
         </View>
       </View>
+
+      {/* Enhanced Modal for Cancel Action */}
+      <Modal
+        transparent={true}
+        animationType="none"
+        visible={modalVisible}
+        onRequestClose={closeModal} // Close modal on back button press
+      >
+        <View style={styles.modalContainer}>
+          <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+            <FontAwesome name="exclamation-circle" size={48} color="#FFAA00" style={styles.modalIcon} />
+            <Text style={styles.modalText}>You can't cancel this because it's shipping.</Text>
+            <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
+              <Text style={styles.modalButtonText}>Okay</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -155,7 +192,7 @@ const styles = StyleSheet.create({
   originalPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#33A853', // Green color
+    color: '#33A853',
     marginBottom: 15,
   },
   buttonContainer: {
@@ -180,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#B0B0B0', // Grey color
+    backgroundColor: '#B0B0B0',
     borderRadius: 8,
     justifyContent: 'center',
   },
@@ -210,7 +247,7 @@ const styles = StyleSheet.create({
   summaryLabelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   summaryValueText: {
     fontSize: 16,
@@ -218,8 +255,41 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   totalText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#33A853',
+    color: '#FF5722',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalIcon: {
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButton: {
+    padding: 10,
+    backgroundColor: '#069906',
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });

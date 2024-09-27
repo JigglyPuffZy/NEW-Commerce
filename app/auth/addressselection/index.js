@@ -9,12 +9,10 @@ export default function AddressSelection() {
   const router = useRouter(); 
 
   const handleAddAddress = () => {
-    
     router.push('/auth/editaddress');
   };
 
   const handleGoBack = () => {
-    
     router.back(); 
   };
 
@@ -78,9 +76,7 @@ export default function AddressSelection() {
           style={styles.addButton}
           onPress={handleAddAddress}
         >
-          <Text 
-             onPress={() => router.push('/auth/addnew')}
-          style={styles.addButtonText}>+ Add New Address</Text>
+          <Text style={styles.addButtonText}>+ Add New Address</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     flex: 1,
-    textAlign: 'center',
+   right:-5,
   },
   addressContainer: {
     flexDirection: 'row',

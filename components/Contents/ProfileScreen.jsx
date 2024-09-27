@@ -1,5 +1,5 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import React from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, TouchableWithoutFeedback } from 'react-native';
+import React, { useState } from 'react';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router'; // Import the useRouter hook
 
 export default function UserProfile() {
   const router = useRouter(); 
+  const [modalVisible, setModalVisible] = useState(false); // State for modal visibility
+  const [fullImageUri, setFullImageUri] = useState(''); // State for full-screen image URI
 
   const options = [
     { id: '1', title: 'Pay', icon: 'wallet', description: 'Manage Payments', count: 3, IconComponent: Entypo },
@@ -52,38 +54,63 @@ export default function UserProfile() {
   );
 
   return (
-    <FlatList
-      data={options}
-      renderItem={renderOption}
-      keyExtractor={item => item.id}
-      ListHeaderComponent={
-        <View style={styles.profileContainer}>
-          <Image
-            source={{ uri: 'https://images4.alphacoders.com/125/thumb-1920-1258018.png' }} // Replace with a valid image URL
-            style={styles.profilePicture}
-          />
-          <Text style={styles.userName}>Ralph Matthew Punzalan</Text>
-          <Text style={styles.userEmail}>ralphmatthewpunzalan1231313@gmail.com</Text>
-        </View>
-      }
-      ListFooterComponent={
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity 
-            onPress={() => router.push('auth/editp')}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('auth/order')} 
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Order History</Text>
-          </TouchableOpacity>
-        </View>
-      }
-      contentContainerStyle={styles.container}
-    />
+    <View style={styles.container}>
+      <FlatList
+        data={options}
+        renderItem={renderOption}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={
+          <View style={styles.profileContainer}>
+            <TouchableOpacity onPress={() => {
+              setFullImageUri('https://images4.alphacoders.com/125/thumb-1920-1258018.png'); // Set the image URI
+              setModalVisible(true); // Show the modal
+            }}>
+              <Image
+                source={{ uri: 'https://images4.alphacoders.com/125/thumb-1920-1258018.png' }} // Replace with a valid image URL
+                style={styles.profilePicture}
+              />
+            </TouchableOpacity>
+            <Text style={styles.userName}>Ralph Matthew Punzalan</Text>
+            <Text style={styles.userEmail}>ralphmatthewpunzalan1231313@gmail.com</Text>
+          </View>
+        }
+        ListFooterComponent={
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity 
+              onPress={() => router.push('auth/editp')}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('auth/order')} 
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Order History</Text>
+            </TouchableOpacity>
+          </View>
+        }
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}  // This will hide the scrollbar
+      />
+
+      {/* Modal for full screen image */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <Image
+              source={{ uri: fullImageUri }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </View>
   );
 }
 
@@ -170,5 +197,15 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Optional: Semi-transparent background
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
   },
 });

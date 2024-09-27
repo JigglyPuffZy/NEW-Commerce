@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Alert, Dimensions } from 'react-native';
 import CustomCheckbox from '../../components/checkbox/customcheckbox'; // Ensure CustomCheckbox is correctly implemented
 import { useRouter } from 'expo-router';
 
@@ -16,6 +16,8 @@ export default function Widget() {
     item1: 299.00,
     item2: 399.00,
   };
+
+  const { width, height } = Dimensions.get('window');
 
   const toggleCheckbox = (itemKey) => {
     setCheckedItems((prev) => {
@@ -61,9 +63,6 @@ export default function Widget() {
   const handleCheckout = () => {
     const selectedItemsCount = Object.keys(checkedItems).filter(key => checkedItems[key].checked).length;
 
-    console.log('Checked items:', checkedItems); // Debugging line
-    console.log('Selected items count:', selectedItemsCount); // Debugging line
-
     if (selectedItemsCount === 0) {
       Alert.alert(
         'Error',
@@ -77,9 +76,9 @@ export default function Widget() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
+    <SafeAreaView style={[styles.safeArea, { paddingHorizontal: width * 0.05 }]}>
+      <ScrollView contentContainerStyle={[styles.container, { paddingVertical: height * 0.02 }]}>
+        <View style={[styles.card, { paddingHorizontal: width * 0.04 }]}>
           {/* Item 1 */}
           <View style={styles.itemContainer}>
             <View style={styles.itemHeader}>
@@ -177,18 +176,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   container: {
-    padding: 30,
+    flexGrow: 1,
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    top: 60,
+    top:25,
   },
   itemContainer: {
     marginBottom: 16,
@@ -263,21 +262,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   totalText: {
+    fontSize: 18,
     fontWeight: 'bold',
   },
   totalPrice: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#28a745', // Changed to green
+    color: '#000',
   },
   checkoutButton: {
-    backgroundColor: '#28a745', // Changed to green
+    backgroundColor: '#069906',
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   checkoutText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

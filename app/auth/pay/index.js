@@ -12,7 +12,9 @@ export default function ToPayScreen() {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [itemToRemove, setItemToRemove] = useState(null);
+  const [selectedReason, setSelectedReason] = useState('');
   const [paymentData, setPaymentData] = useState(initialPaymentData);
+  const reasons = ["Wrong shipping address", "Changed my mind", "Ordered by mistake", "Found a better price"];
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -29,9 +31,7 @@ export default function ToPayScreen() {
       </View>
       <Text style={styles.originalPrice}>{item.price}</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-        
-        style={styles.contactButton}>
+        <TouchableOpacity style={styles.contactButton}>
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
@@ -50,14 +50,15 @@ export default function ToPayScreen() {
   );
 
   const handleRemoveItem = () => {
-    if (itemToRemove) {
+    if (itemToRemove && selectedReason) {
       setPaymentData(paymentData.filter(item => item.id !== itemToRemove));
       setItemToRemove(null);
+      setSelectedReason('');
       setModalVisible(false);
     }
   };
 
-  const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '')) * item.quantity), 0);
+  const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '').replace(/,/g, '')) * item.quantity), 0);
   const itemCount = paymentData.reduce((count, item) => count + item.quantity, 0);
 
   return (
@@ -89,22 +90,36 @@ export default function ToPayScreen() {
         </View>
       </View>
 
-      {/* Modal for Cancel Confirmation */}
+      {/* Enhanced Modal for Cancel Confirmation */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Are you sure you want to cancel?</Text>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Why are you cancelling?</Text>
+            {reasons.map((reason, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.reasonOption}
+                onPress={() => setSelectedReason(reason)}
+              >
+                <FontAwesome 
+                  name={selectedReason === reason ? "dot-circle-o" : "circle-o"} 
+                  size={20} 
+                  color="#069906" 
+                />
+                <Text style={styles.reasonText}>{reason}</Text>
+              </TouchableOpacity>
+            ))}
             <View style={styles.modalButtons}>
               <Pressable style={styles.modalButtonYes} onPress={handleRemoveItem}>
-                <Text style={styles.modalButtonText}>Yes</Text>
+                <Text style={styles.modalButtonText}>Confirm</Text>
               </Pressable>
               <Pressable style={styles.modalButtonNo} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalButtonText}>No</Text>
+                <Text style={styles.modalButtonText}>Cancel</Text>
               </Pressable>
             </View>
           </View>
@@ -127,8 +142,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#069906',
     elevation: 4,
     marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
   },
   backButton: {
     padding: 10,
@@ -196,7 +209,7 @@ const styles = StyleSheet.create({
   originalPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#33A853', 
+    color: '#33A853',
     marginBottom: 15,
   },
   buttonContainer: {
@@ -213,6 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#069906',
     borderRadius: 8,
     justifyContent: 'center',
+    elevation: 2,
   },
   cancelButton: {
     flex: 1,
@@ -221,9 +235,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#FF0000', 
+    backgroundColor: '#FF0000',
     borderRadius: 8,
     justifyContent: 'center',
+    elevation: 2,
   },
   buttonText: {
     fontSize: 14,
@@ -234,24 +249,22 @@ const styles = StyleSheet.create({
   summaryContainer: {
     padding: 20,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    elevation: 5,
+    borderRadius: 15,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    marginTop: 20,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    marginBottom: 20,
   },
   summaryDetail: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 5,
   },
   summaryLabelText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   summaryValueText: {
     fontSize: 16,
@@ -259,48 +272,63 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   totalText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#33A853',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#069906',
   },
-  modalContainer: {
+  modalBackdrop: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContent: {
+  modalContainer: {
     width: '80%',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 10,
     padding: 20,
-    alignItems: 'center',
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  reasonOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  reasonText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: '#333',
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    justifyContent: 'space-between',
+    marginTop: 15,
   },
   modalButtonYes: {
     backgroundColor: '#069906',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 5,
+    alignItems: 'center',
   },
   modalButtonNo: {
     backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginLeft: 5,
+    alignItems: 'center',
   },
   modalButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: '600',
   },
 });
+

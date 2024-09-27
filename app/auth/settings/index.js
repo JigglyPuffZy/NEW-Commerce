@@ -1,15 +1,26 @@
-import { View, Text, TouchableOpacity, StyleSheet, Modal, SafeAreaView } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, SafeAreaView, Animated } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function Settings() {
   const [modalVisible, setModalVisible] = useState(false);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false); // New state for logout confirmation
   const router = useRouter();
+  const [opacity] = useState(new Animated.Value(0));
 
   const handleLogout = () => {
-    setModalVisible(true);
+    setLogoutConfirmVisible(true); // Show confirmation modal instead
+  };
+
+  const handleConfirmLogout = () => {
+    setLogoutConfirmVisible(false);
+    setModalVisible(true); // Show the logout success modal
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutConfirmVisible(false); // Close confirmation modal
   };
 
   const handleCloseModal = () => {
@@ -29,23 +40,37 @@ export default function Settings() {
     setSaveModalVisible(false);
   };
 
+  const animateModal = () => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  useEffect(() => {
+    if (modalVisible || saveModalVisible || logoutConfirmVisible) {
+      animateModal();
+    }
+  }, [modalVisible, saveModalVisible, logoutConfirmVisible]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackButtonPress}>
-            <FontAwesome name="arrow-left" size={24} color="#069906" />
+            <FontAwesome name="arrow-left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.title}>Settings</Text>
         </View>
 
         <View style={styles.listContainer}>
           <TouchableOpacity onPress={() => router.push('auth/changepass')} style={styles.listItem}>
-            <Text>Change Password</Text>
+            <Text style={styles.listItemText}>Change Password</Text>
             <Text style={styles.arrow}>&gt;</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('auth/contactus')} style={styles.listItem}>
-            <Text>Contact Us</Text>
+            <Text style={styles.listItemText}>Contact Us</Text>
             <Text style={styles.arrow}>&gt;</Text>
           </TouchableOpacity>
         </View>
@@ -58,37 +83,44 @@ export default function Settings() {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        {/* Logout Modal */}
-        <Modal
-          transparent={true}
-          animationType="fade"
-          visible={modalVisible}
-          onRequestClose={handleCloseModal}
-        >
+        {/* Logout Confirmation Modal */}
+        <Modal transparent={true} animationType="fade" visible={logoutConfirmVisible} onRequestClose={handleCancelLogout}>
           <SafeAreaView style={styles.modalContainer}>
-            <View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, { opacity }]}>
+              <Text style={styles.modalText}>Are you sure you want to logout?</Text>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity style={styles.modalButton} onPress={handleConfirmLogout}>
+                  <Text style={styles.modalButtonText}>Yes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={handleCancelLogout}>
+                  <Text style={styles.modalButtonText}>No</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </SafeAreaView>
+        </Modal>
+
+        {/* Logout Modal */}
+        <Modal transparent={true} animationType="fade" visible={modalVisible} onRequestClose={handleCloseModal}>
+          <SafeAreaView style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent, { opacity }]}>
               <Text style={styles.modalText}>Successfully logged out</Text>
               <TouchableOpacity style={styles.modalButton} onPress={handleCloseModal}>
                 <Text style={styles.modalButtonText}>OK</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </SafeAreaView>
         </Modal>
 
         {/* Save Changes Modal */}
-        <Modal
-          transparent={true}
-          animationType="fade"
-          visible={saveModalVisible}
-          onRequestClose={handleCloseSaveModal}
-        >
+        <Modal transparent={true} animationType="fade" visible={saveModalVisible} onRequestClose={handleCloseSaveModal}>
           <SafeAreaView style={styles.modalContainer}>
-            <View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, { opacity }]}>
               <Text style={styles.modalText}>Successfully saved changes</Text>
               <TouchableOpacity style={styles.modalButton} onPress={handleCloseSaveModal}>
                 <Text style={styles.modalButtonText}>OK</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </SafeAreaView>
         </Modal>
       </View>
@@ -99,7 +131,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#F4F7F6',
   },
   content: {
     flex: 1,
@@ -108,16 +140,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   backButton: {
     padding: 8,
+    backgroundColor: '#069906', // Background color for the back button
+    borderRadius: 50,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#069906',
-    marginLeft: 8,
+    marginLeft: 12,
   },
   listContainer: {
     marginBottom: 16,
@@ -126,12 +160,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  listItemText: {
+    fontSize: 18,
+    color: '#3D3D3D',
   },
   arrow: {
     fontSize: 18,
@@ -139,19 +183,30 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#069906',
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#069906',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
   saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   logoutText: {
-    color: '#f87171',
+    color: '#D95D5D',
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 12,
   },
   modalContainer: {
     flex: 1,
@@ -161,17 +216,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     padding: 24,
     borderRadius: 12,
     alignItems: 'center',
     width: '90%',
     maxWidth: 400,
     elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
   },
   modalText: {
     fontSize: 20,
@@ -179,15 +230,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
   modalButton: {
     backgroundColor: '#069906',
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
-    width: '100%',
+    width: '48%',
+    elevation: 3,
   },
   modalButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: 'bold',
   },
 });

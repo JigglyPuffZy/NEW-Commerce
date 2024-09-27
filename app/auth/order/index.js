@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import React from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,51 +19,56 @@ export default function OrderHistory() {
       total: '₱140',
       status: 'Completed',
     },
-    
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <FontAwesome5 name="arrow-left" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Order History</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <FontAwesome5 name="arrow-left" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Order History</Text>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {orders.map(order => (
-          <View key={order.id} style={styles.orderCard}>
-            <View style={styles.orderHeader}>
-              <Text style={[styles.statusBadge, { backgroundColor: order.status === 'Completed' ? '#4CAF50' : '#FF5722' }]}>{order.status}</Text>
-            </View>
-            <View style={styles.orderContent}>
-              <Image source={{ uri: order.image }} style={styles.productImage} />
-              <View style={styles.orderDetails}>
-                <Text style={styles.productName}>{order.name}</Text>
-                <Text style={styles.productDescription}>{order.description}</Text>
-                <Text style={styles.productQuantity}>{order.quantity}</Text>
-                <Text style={styles.productPrice}>{order.price}</Text>
-                <Text style={styles.totalPrice}>Total 1 item: {order.total}</Text>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          {orders.map(order => (
+            <View key={order.id} style={styles.orderCard}>
+              <View style={styles.orderHeader}>
+                <Text style={[styles.statusBadge, { backgroundColor: order.status === 'Completed' ? '#4CAF50' : '#FF5722' }]}>{order.status}</Text>
+              </View>
+              <View style={styles.orderContent}>
+                <Image source={{ uri: order.image }} style={styles.productImage} />
+                <View style={styles.orderDetails}>
+                  <Text style={styles.productName}>{order.name}</Text>
+                  <Text style={styles.productDescription}>{order.description}</Text>
+                  <Text style={styles.productQuantity}>{order.quantity}</Text>
+                  <Text style={styles.productPrice}>{order.price}</Text>
+                  <Text style={styles.totalPrice}>Total 1 item: {order.total}</Text>
+                </View>
+              </View>
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity 
+                  onPress={() => router.push('auth/products')} 
+                  style={styles.buyAgainButton}
+                >
+                  <Text style={styles.buttonText}>Buy Again</Text>
+                </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/products')} 
-                style={styles.buyAgainButton}
-              >
-                <Text style={styles.buttonText}>Buy Again</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+          ))}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f9f9f9',

@@ -1,11 +1,12 @@
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image, Modal, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 
 export default function PaymentPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('COD');
-  const router = useRouter(); // Use useRouter hook
+  const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
 
   const items = [
     { id: 1, name: "Banga", price: 67.00, originalPrice: 77.00 },
@@ -19,16 +20,10 @@ export default function PaymentPage() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         {/* Header with Back Button */}
         <View style={styles.headerContainer}>
-          <TouchableOpacity 
-            onPress={() => {
-              console.log('Back button pressed');
-              router.back(); // Use router.back() to go back
-            }} 
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <FontAwesome name="arrow-left" size={24} color="#069906" />
           </TouchableOpacity>
           <Text style={styles.header}>Checkout</Text>
@@ -65,7 +60,7 @@ export default function PaymentPage() {
             </View>
           </View>
         ))}
-        <Text style={styles.mutedText}>Total Order ({items.length}):  ₱{subtotal.toFixed(2)}</Text>
+        <Text style={styles.mutedText}>Total Order ({items.length}): ₱{subtotal.toFixed(2)}</Text>
 
         {/* Payment Method Section */}
         <View style={styles.section}>
@@ -118,12 +113,39 @@ export default function PaymentPage() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.checkoutButton}
-            onPress={() => router.push('auth/pay')} // Navigate to the payment page
+            onPress={() => setModalVisible(true)}
           >
             <Text style={styles.checkoutButtonText}>Checkout</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal transparent={true} visible={modalVisible} animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirm Checkout</Text>
+            <Text style={styles.modalMessage}>Are you sure you want to checkout?</Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={styles.modalButton}
+                onPress={() => {
+                  setModalVisible(false);
+                  router.push('auth/pay');
+                }}
+              >
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.modalButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -135,64 +157,74 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    flex: 1,
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    // Removed background color to have a transparent header
   },
   backButton: {
-    padding: 16,
+    padding: 8,
     marginRight: 16,
   },
   header: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#28a745', // Optional: Change text color if needed
     flex: 1,
-    textAlign: 'center',
-    right: 40,
+    right:10,
   },
   section: {
     marginBottom: 24,
   },
   subHeader: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#333',
   },
   addressContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 16,
+    backgroundColor: '#f7f7f7',
   },
   mutedText: {
     color: '#6c757d',
   },
   boldText: {
-    fontWeight: '600',
+    fontWeight: 'bold',
+    color: '#333',
+    fontSize: 16,
   },
   linkText: {
     color: '#007bff',
     marginTop: 8,
+    textDecorationLine: 'underline',
+    fontWeight: '500',
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    elevation: 3,
   },
   itemImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     marginRight: 16,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   itemDetails: {
     flex: 1,
@@ -208,48 +240,91 @@ const styles = StyleSheet.create({
   },
   paymentMethodButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     backgroundColor: '#e9ecef',
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     marginRight: 8,
+    elevation: 2,
   },
   paymentMethodButtonSelected: {
     backgroundColor: '#28a745',
+    elevation: 3,
   },
   paymentMethodText: {
-    color: '#6c757d',
-    fontWeight: '600',
+    color: '#333',
+    fontWeight: '500',
   },
   paymentMethodTextSelected: {
     color: '#fff',
   },
   summarySection: {
-    marginTop: 'auto',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 16,
+    backgroundColor: '#f7f7f7',
     marginBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingTop: 16,
   },
   summaryItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    marginBottom: 8,
   },
   buttonContainer: {
-    alignItems: 'center',
+    marginTop: 24,
   },
   checkoutButton: {
     backgroundColor: '#28a745',
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
-    width: '100%',
+    elevation: 3,
   },
   checkoutButtonText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

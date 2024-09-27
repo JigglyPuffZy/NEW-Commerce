@@ -49,7 +49,6 @@ export default function ToPayScreen() {
 
   const handleRateItem = () => {
     if (itemToRate) {
-      // Navigate to the rate products screen
       router.push('auth/rateproducts');
       setItemToRate(null);
       setModalVisible(false);
@@ -63,7 +62,7 @@ export default function ToPayScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity 
-          onPress={() => router.push('auth/home')} // Updated navigation
+          onPress={() => router.push('auth/home')}
           style={styles.backButton}
         >
           <FontAwesome name="arrow-left" size={24} color="#ffffff" />
@@ -91,7 +90,7 @@ export default function ToPayScreen() {
         </View>
       </View>
 
-      {/* Modal for Rating Confirmation */}
+      {/* Enhanced Modal for Rating Confirmation */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -100,7 +99,8 @@ export default function ToPayScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Are you sure you want to rate this product?</Text>
+            <Text style={styles.modalTitle}>Rate this product?</Text>
+            <Text style={styles.modalSubtitle}>Are you sure you want to proceed?</Text>
             <View style={styles.modalButtons}>
               <Pressable style={styles.modalButtonYes} onPress={handleRateItem}>
                 <Text style={styles.modalButtonText}>Yes</Text>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   originalPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#33A853', // Changed to green
+    color: '#33A853',
     marginBottom: 15,
   },
   buttonContainer: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#FFD700', // Change to a color that represents rating
+    backgroundColor: '#FFD700',
     borderRadius: 8,
     justifyContent: 'center',
   },
@@ -253,17 +253,17 @@ const styles = StyleSheet.create({
   summaryLabelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   summaryValueText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#666',
   },
   totalText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#33A853',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
   modalContainer: {
     flex: 1,
@@ -272,37 +272,53 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 15,
+    padding: 25,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
     marginBottom: 20,
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
   },
   modalButtonYes: {
     backgroundColor: '#069906',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 12,
     borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 10,
   },
   modalButtonNo: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#D32F2F',
+    padding: 12,
     borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    marginLeft: 10,
   },
   modalButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    color: '#fff',
   },
 });

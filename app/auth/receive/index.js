@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -22,12 +22,10 @@ export default function ToPayScreen() {
   const confirmOrderReceived = () => {
     setPaymentData(prevData => prevData.filter(item => item.id !== selectedItemId));
     setModalVisible(false);
-    console.log('Order received');
   };
 
   const cancelOrderReceived = () => {
     setModalVisible(false);
-    console.log('Order not received');
   };
 
   const renderItem = ({ item }) => (
@@ -40,25 +38,19 @@ export default function ToPayScreen() {
         <View style={styles.itemDetails}>
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+          <Text style={styles.itemQuantity}>Quantity: x{item.quantity}</Text>
+          <Text style={styles.itemPrice}>Price: {item.price}</Text>
         </View>
       </View>
-      <Text style={styles.originalPrice}>{item.price}</Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.contactButton}>
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} disabled={true}>
-          <FontAwesome name="times" size={16} color="#fff" />
-          <Text style={styles.cancelButtonText}>Cancel Order</Text>
+        <TouchableOpacity style={styles.receivedButton} onPress={() => handleOrderReceived(item.id)}>
+          <Text style={styles.receivedButtonText}>Order Received</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity 
-        onPress={() => handleOrderReceived(item.id)}
-        style={styles.receivedButton}>
-        <Text style={styles.receivedButtonText}>Order Received</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -78,10 +70,12 @@ export default function ToPayScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         style={styles.list}
+        showsVerticalScrollIndicator={false}
       />
       <View style={styles.summaryContainer}>
+        <Text style={styles.summaryTitle}>Order Summary</Text>
         <View style={styles.summaryDetail}>
-          <Text style={styles.summaryLabelText}>Item Count:</Text>
+          <Text style={styles.summaryLabelText}>Items Count:</Text>
           <Text style={styles.summaryValueText}>{itemCount}</Text>
         </View>
         <View style={styles.summaryDetail}>
@@ -106,7 +100,7 @@ export default function ToPayScreen() {
             <Text style={styles.modalTitle}>Confirm Order Received</Text>
             <Text style={styles.modalMessage}>Are you sure you want to mark this order as received?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={cancelOrderReceived}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelModalButton]} onPress={cancelOrderReceived}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalButton} onPress={confirmOrderReceived}>
@@ -123,7 +117,7 @@ export default function ToPayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#F5F5F5',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -132,7 +126,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: '#069906',
     elevation: 4,
-    marginBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
@@ -140,9 +133,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   headerTitleText: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#ffffff',
     marginLeft: 10,
     letterSpacing: 0.5,
   },
@@ -151,25 +144,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 15,
-    elevation: 6,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 10,
+    shadowRadius: 4,
     marginBottom: 20,
     padding: 15,
+    top:20,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   cardHeaderText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#069906',
+    
   },
   itemContainer: {
     flexDirection: 'row',
@@ -193,21 +186,21 @@ const styles = StyleSheet.create({
   itemDescription: {
     fontSize: 14,
     color: '#666',
-    marginVertical: 5,
+    marginVertical: 2,
   },
   itemQuantity: {
     fontSize: 14,
     color: '#888',
   },
-  originalPrice: {
-    fontSize: 16,
+  itemPrice: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#33A853',
-    marginBottom: 15,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 10,
   },
   contactButton: {
     flex: 1,
@@ -216,27 +209,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#069906',
+    backgroundColor: '#069906', // Keep the background color as is
     borderRadius: 8,
     justifyContent: 'center',
+    elevation: 2,
   },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#B0B0B0', // Grey color
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  cancelButtonText: {
+  buttonText: {
+    color: '#ffffff', // Set the button text color to white
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginLeft: 5,
+    fontWeight: 'bold',
   },
   receivedButton: {
-    marginTop: 15,
     paddingVertical: 12,
     paddingHorizontal: 15,
     backgroundColor: '#069906', // Green color
@@ -245,86 +228,89 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   receivedButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  buttonText: {
-    fontSize: 14,
-    color: '#fff',
-    fontWeight: '600',
-    marginLeft: 5,
+    fontWeight: 'bold',
   },
   summaryContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
     padding: 20,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    elevation: 5,
+    margin: 20,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    marginTop: 20,
+    shadowRadius: 6,
+  },
+  summaryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#069906',
   },
   summaryDetail: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    marginBottom: 10,
   },
   summaryLabelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   summaryValueText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#069906',
   },
   totalText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#33A853',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FF5722', // Highlight total amount
   },
   modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: '80%',
+    backgroundColor: '#ffffff',
     padding: 20,
-    backgroundColor: '#fff',
     borderRadius: 10,
+    width: '80%',
     alignItems: 'center',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: 'bold',
     marginBottom: 10,
+    color: '#333',
   },
   modalMessage: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 20,
     textAlign: 'center',
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
   },
   modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#069906',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelModalButton: {
+    backgroundColor: '#B0B0B0', // Grey color
   },
   modalButtonText: {
-    fontSize: 16,
-    color: '#069906',
+    color: '#fff',
     fontWeight: '600',
   },
 });
