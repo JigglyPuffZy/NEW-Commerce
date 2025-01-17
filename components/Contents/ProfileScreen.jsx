@@ -1,23 +1,48 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, TouchableWithoutFeedback } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import { FontAwesome } from '@expo/vector-icons'; // For chevron-right icon
 import { useRouter } from 'expo-router'; // Import the useRouter hook
 
+
 export default function UserProfile() {
   const router = useRouter(); 
+  const [profile, setProfile] = useState(null); // Profile data state
+  const [loading, setLoading] = useState(true); // Loading state
   const [modalVisible, setModalVisible] = useState(false); // State for modal visibility
   const [fullImageUri, setFullImageUri] = useState(''); // State for full-screen image URI
-
+  
   const options = [
-    { id: '1', title: 'Pay', icon: 'wallet', description: 'Manage Payments', count: 3, IconComponent: Entypo },
+    { id: '1', title: 'Checkout', icon: 'wallet', description: 'View Orders', count: 3, IconComponent: Entypo },
     { id: '2', title: 'Ship', icon: 'truck', description: 'Track Shipments', count: 5, IconComponent: FontAwesome5 },
     { id: '3', title: 'Receive', icon: 'box', description: 'Manage Receipts', count: 7, IconComponent: Feather },
     { id: '4', title: 'Rate', icon: 'star', description: 'Leave Feedback', count: 12, IconComponent: FontAwesome },
   ];
 
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
+
+  useEffect(() => {
+    // Fetch profile data
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/fetch_profile.php?buyerID=${buyerId}`);
+        const result = await response.json();
+        if (result.status === "success") {
+          setProfile(result.data); // Set profile to result.data, not result
+        } else {
+          console.error('Failed to fetch profile data');
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
   const handleNavigation = (id) => {
     console.log('Navigating with ID:', id); // Debugging step
     const routes = {
@@ -62,44 +87,36 @@ export default function UserProfile() {
         ListHeaderComponent={
           <View style={styles.profileContainer}>
             <TouchableOpacity onPress={() => {
-              setFullImageUri('https://images4.alphacoders.com/125/thumb-1920-1258018.png'); // Set the image URI
+              setFullImageUri(profile?.imageUri || ''); // Set the image URI from profile data
               setModalVisible(true); // Show the modal
             }}>
               <Image
-                source={{ uri: 'https://images4.alphacoders.com/125/thumb-1920-1258018.png' }} // Replace with a valid image URL
+                source={{ uri: profile?.imageUri || 'https://default.image.url' }}
                 style={styles.profilePicture}
               />
             </TouchableOpacity>
-            <Text style={styles.userName}>Ralph Matthew Punzalan</Text>
-            <Text style={styles.userEmail}>ralphmatthewpunzalan1231313@gmail.com</Text>
+            <Text style={styles.userName}>{profile?.firstname || 'No Name'} {profile?.lastname || 'No Name'}</Text>
+            <Text style={styles.userEmail}>{profile?.email || 'No Email'}</Text>
+            <Text style={styles.userEmail}>{profile?.contactNo || 'No Contact'}</Text>
+
           </View>
         }
         ListFooterComponent={
           <View style={styles.actionsContainer}>
-            <TouchableOpacity 
-              onPress={() => router.push('auth/editp')}
-              style={styles.button}
-            >
+            <TouchableOpacity onPress={() => router.push('auth/editp')} style={styles.button}>
               <Text style={styles.buttonText}>Edit Profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push('auth/order')} 
-              style={styles.button}
-            >
+            {/* <TouchableOpacity onPress={() => router.push('auth/order')} style={styles.button}>
               <Text style={styles.buttonText}>Order History</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         }
         contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}  // This will hide the scrollbar
+        showsVerticalScrollIndicator={false}
       />
 
       {/* Modal for full screen image */}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalContainer}>
             <Image
@@ -113,6 +130,7 @@ export default function UserProfile() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,77 +1,157 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Alert, Dimensions } from 'react-native';
 import CustomCheckbox from '../../components/checkbox/customcheckbox'; // Ensure CustomCheckbox is correctly implemented
 import { useRouter } from 'expo-router';
 
 export default function Widget() {
-  const [checkedItems, setCheckedItems] = useState({
-    item1: { checked: false, quantity: 1 },
-    item2: { checked: false, quantity: 1 },
-  });
+  const [checkedItems, setCheckedItems] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
-
+  const [products, setProducts] = useState([]);
   const router = useRouter();
 
-  const itemPrices = {
-    item1: 299.00,
-    item2: 399.00,
-  };
-
   const { width, height } = Dimensions.get('window');
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
 
-  const toggleCheckbox = (itemKey) => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/fetch_cart.php?buyerId=${buyerId}`);
+        const data = await response.json();
+        setProducts(data);
+  
+        // Initialize checkedItems with quantity_carted values from fetched products
+        const initialCheckedItems = {};
+        data.forEach(item => {
+          initialCheckedItems[item.cart_id] = {
+            checked: false,
+            quantity: item.quantity_carted, // Set the initial quantity from database
+          };
+        });
+        setCheckedItems(initialCheckedItems);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchProducts();
+  }, [buyerId]);
+
+  const toggleCheckbox = (cartId) => {
     setCheckedItems((prev) => {
       const newCheckedItems = {
         ...prev,
-        [itemKey]: {
-          ...prev[itemKey],
-          checked: !prev[itemKey].checked,
+        [cartId]: {
+          ...prev[cartId],
+          checked: !(prev[cartId]?.checked), // Use optional chaining
+          quantity: prev[cartId]?.quantity || 1, // Ensure quantity is defined
         },
       };
-
+  
       const newTotalPrice = Object.keys(newCheckedItems)
         .filter(key => newCheckedItems[key].checked)
-        .reduce((sum, key) => sum + itemPrices[key] * newCheckedItems[key].quantity, 0);
-        
+        .reduce((sum, key) => sum + (products.find(p => p.cart_id === key).price * newCheckedItems[key].quantity), 0);
+  
       setTotalPrice(newTotalPrice);
-
       return newCheckedItems;
     });
   };
 
-  const changeQuantity = (itemKey, change) => {
+  const updateQuantityInDatabase = async (cartId, quantity) => {
+    try {
+      const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/update_cart_quantity.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cartId, quantity }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update quantity');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const removeFromCart = async (cartId) => {
+    try {
+      // Remove product from the database
+      const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/remove_from_cart.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cartId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove product from cart');
+      }
+
+      // Remove the product from the state
+      setProducts((prevProducts) => prevProducts.filter((product) => product.cart_id !== cartId));
+      setCheckedItems((prevCheckedItems) => {
+        const newCheckedItems = { ...prevCheckedItems };
+        delete newCheckedItems[cartId];
+        return newCheckedItems;
+      });
+
+      // Recalculate total price
+      const newTotalPrice = Object.keys(checkedItems)
+        .filter(key => checkedItems[key].checked)
+        .reduce((sum, key) => sum + (products.find(p => p.cart_id === key).price * checkedItems[key].quantity), 0);
+  
+      setTotalPrice(newTotalPrice);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to remove product from cart');
+    }
+  };
+
+  const changeQuantity = (cartId, change) => {
     setCheckedItems((prev) => {
-      const newQuantity = Math.max(prev[itemKey].quantity + change, 1);
+      const currentItem = prev[cartId];
+  
+      if (!currentItem) {
+        // If currentItem is undefined, return prev without any changes
+        return prev;
+      }
+  
+      const newQuantity = Math.max(parseInt(currentItem.quantity, 10) + change, 1); // Ensure quantity is an integer
       const newCheckedItems = {
         ...prev,
-        [itemKey]: {
-          ...prev[itemKey],
+        [cartId]: {
+          ...currentItem,
           quantity: newQuantity,
         },
       };
-
+  
+      // Update the quantity in the database
+      updateQuantityInDatabase(cartId, newQuantity);
+  
       const newTotalPrice = Object.keys(newCheckedItems)
         .filter(key => newCheckedItems[key].checked)
-        .reduce((sum, key) => sum + itemPrices[key] * newCheckedItems[key].quantity, 0);
-
+        .reduce((sum, key) => sum + (products.find(p => p.cart_id === key).price * newCheckedItems[key].quantity), 0);
+  
       setTotalPrice(newTotalPrice);
-
       return newCheckedItems;
     });
   };
 
   const handleCheckout = () => {
-    const selectedItemsCount = Object.keys(checkedItems).filter(key => checkedItems[key].checked).length;
-
+    const selectedItems = Object.keys(checkedItems).filter(key => checkedItems[key].checked);
+    const selectedItemsCount = selectedItems.length;
+  
     if (selectedItemsCount === 0) {
-      Alert.alert(
-        'Error',
-        'Please check an item before checking out',
-        [{ text: 'OK' }],
-        { cancelable: false }
-      );
+      Alert.alert('Error', 'Please check an item before checking out', [{ text: 'OK' }], { cancelable: false });
     } else {
-      router.push('auth/payment');
+      // Pass selected cart_ids as a query parameter
+      router.push({
+        pathname: 'auth/payment',
+        params: { cartId: selectedItems },
+      });
     }
   };
 
@@ -79,77 +159,46 @@ export default function Widget() {
     <SafeAreaView style={[styles.safeArea, { paddingHorizontal: width * 0.05 }]}>
       <ScrollView contentContainerStyle={[styles.container, { paddingVertical: height * 0.02 }]}>
         <View style={[styles.card, { paddingHorizontal: width * 0.04 }]}>
-          {/* Item 1 */}
-          <View style={styles.itemContainer}>
-            <View style={styles.itemHeader}>
-              <View style={styles.checkboxContainer}>
-                <CustomCheckbox
-                  isChecked={checkedItems.item1.checked}
-                  onCheck={() => toggleCheckbox('item1')}
-                />
-                <Text style={styles.itemHeaderText}>Banga Shop</Text>
+          {products.map((item) => {
+            const imageArray = item.imagesPath
+              ? item.imagesPath.split(",").map((img) => img.trim())
+              : [];
+            const firstImage = imageArray[0] || ""; // Get the first image URL
+            return (
+              <View key={item.cart_id} style={styles.itemContainer}>
+                <View style={styles.itemHeader}>
+                  <View style={styles.checkboxContainer}>
+                    <CustomCheckbox
+                      isChecked={checkedItems[item.cart_id]?.checked || false}
+                      onCheck={() => toggleCheckbox(item.cart_id)}
+                    />
+                    <Text style={styles.itemHeaderText}>{item.shopName}</Text>
+                  </View>
+                </View>
+                <View style={styles.itemContent}>
+                  <Image source={{ uri: `https://rancho-agripino.com/database/potteryFiles/product_images/${firstImage}` }} style={styles.itemImage} />
+                  <View style={styles.itemDetails}>
+                    <Text style={styles.itemName}>{item.product_name}</Text>
+                    <Text style={styles.itemDescription}>{item.description}</Text>
+                    <Text style={styles.itemPrice}>₱{item.price}</Text>
+                  </View>
+                  <View style={styles.quantityContainer}>
+                    <TouchableOpacity style={styles.quantityButton} onPress={() => changeQuantity(item.cart_id, -1)}>
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.quantity}>{checkedItems[item.cart_id]?.quantity || 1}</Text>
+                    <TouchableOpacity style={styles.quantityButton} onPress={() => changeQuantity(item.cart_id, 1)}>
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                 
+                </View>
+                <TouchableOpacity onPress={() => removeFromCart(item.cart_id)} style={styles.removeButton}>
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
               </View>
-            </View>
-            <View style={styles.itemContent}>
-              <Image source={{ uri: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg' }} style={styles.itemImage} />
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>Kainan ng Aso</Text>
-                <Text style={styles.itemDescription}>Height 100, Width 30</Text>
-                <Text style={styles.itemPrice}>₱{itemPrices.item1.toLocaleString()}</Text>
-              </View>
-              <View style={styles.quantityContainer}>
-                <TouchableOpacity 
-                  style={styles.quantityButton} 
-                  onPress={() => changeQuantity('item1', -1)}
-                >
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantity}>{checkedItems.item1.quantity}</Text>
-                <TouchableOpacity 
-                  style={styles.quantityButton} 
-                  onPress={() => changeQuantity('item1', 1)}
-                >
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Item 2 */}
-          <View style={styles.itemContainer}>
-            <View style={styles.itemHeader}>
-              <View style={styles.checkboxContainer}>
-                <CustomCheckbox
-                  isChecked={checkedItems.item2.checked}
-                  onCheck={() => toggleCheckbox('item2')}
-                />
-                <Text style={styles.itemHeaderText}>Banga Shop</Text>
-              </View>
-            </View>
-            <View style={styles.itemContent}>
-              <Image source={{ uri: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg' }} style={styles.itemImage} />
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>Kainan ng Aso</Text>
-                <Text style={styles.itemDescription}>Height 100, Width 30</Text>
-                <Text style={styles.itemPrice}>₱{itemPrices.item2.toLocaleString()}</Text>
-              </View>
-              <View style={styles.quantityContainer}>
-                <TouchableOpacity 
-                  style={styles.quantityButton} 
-                  onPress={() => changeQuantity('item2', -1)}
-                >
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantity}>{checkedItems.item2.quantity}</Text>
-                <TouchableOpacity 
-                  style={styles.quantityButton} 
-                  onPress={() => changeQuantity('item2', 1)}
-                >
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+            );
+          })}
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -157,11 +206,10 @@ export default function Widget() {
               <Text style={styles.totalText}>Total</Text>
               <Text style={styles.totalPrice}>₱{totalPrice.toLocaleString()}</Text>
             </View>
-            <TouchableOpacity 
-              onPress={handleCheckout}
-              style={styles.checkoutButton}
-            >
-              <Text style={styles.checkoutText}>Check Out ({Object.keys(checkedItems).filter(key => checkedItems[key].checked).length})</Text>
+            <TouchableOpacity onPress={handleCheckout} style={styles.checkoutButton}>
+              <Text style={styles.checkoutText}>
+                Check Out ({Object.keys(checkedItems).filter(key => checkedItems[key].checked).length})
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -170,7 +218,22 @@ export default function Widget() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
+  removeButton: {
+    marginTop: 10,
+    backgroundColor: 'red',
+    padding: 5,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 100,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 14,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#f9f9f9',
@@ -187,7 +250,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    top:25,
+    top:75,
   },
   itemContainer: {
     marginBottom: 16,

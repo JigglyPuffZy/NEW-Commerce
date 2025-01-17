@@ -1,17 +1,35 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal, Animated } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 
-const paymentData = [
-  { id: '1', name: 'Item 1', price: '₱239.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Aso', quantity: 4 },
-  { id: '2', name: 'Item 2', price: '₱200.00', discountedPrice: '₱180.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Pusa', quantity: 1 },
-];
-
 export default function ToPayScreen() {
   const navigation = useNavigation();
+  const [orders, setOrders] = useState([]); // State for orders
+  const [loading, setLoading] = useState(true); // Loading state
   const [modalVisible, setModalVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0)); // For fade-in animation
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
+  useEffect(() => {
+    // Fetch orders data
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/fetch_order_status.php?order_status=2&buyerId=${buyerId}`);
+        const data = await response.json();
+        // Assuming 'data' is the array of orders
+        setOrders(Array.isArray(data) ? data : []); 
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    
+    fetchOrders();
+  }, []);
 
   const openModal = () => {
     setModalVisible(true);
@@ -36,29 +54,21 @@ export default function ToPayScreen() {
         <Text style={styles.cardHeaderText}>To Ship</Text>
       </View>
       <View style={styles.itemContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <Image source={{ uri: `https://rancho-agripino.com/database/potteryFiles/product_images/${item.imagesPath.split(",")[0].trim()}` }} style={styles.itemImage} />
         <View style={styles.itemDetails}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemName}>{item.product_name}</Text>
           <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+          <Text style={styles.itemQuantity}>x{item.quantity_carted}</Text>
         </View>
       </View>
-      <Text style={styles.originalPrice}>{item.price}</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.contactButton}>
-          <FontAwesome name="envelope" size={16} color="#fff" />
-          <Text style={styles.buttonText}> Contact Seller</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={openModal}>
-          <FontAwesome name="times" size={16} color="#fff" />
-          <Text style={styles.buttonText}> Cancel</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.originalPrice}>₱{item.price}</Text>
     </View>
   );
+  
 
-  const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '')) * item.quantity), 0);
-  const itemCount = paymentData.reduce((count, item) => count + item.quantity, 0);
+  const totalAmount = orders.reduce((total, item) => total + parseFloat(item.price) * item.quantity_carted, 0);
+  const itemCount = orders.reduce((count, item) => count + item.quantity_carted, 0);
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,12 +78,16 @@ export default function ToPayScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitleText}>To Ship</Text>
       </View>
-      <FlatList
-        data={paymentData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-      />
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <FlatList
+          data={orders}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+        />
+      )}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryDetail}>
           <Text style={styles.summaryLabelText}>Item Count:</Text>
@@ -94,7 +108,7 @@ export default function ToPayScreen() {
         transparent={true}
         animationType="none"
         visible={modalVisible}
-        onRequestClose={closeModal} // Close modal on back button press
+        onRequestClose={closeModal}
       >
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>

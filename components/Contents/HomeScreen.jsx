@@ -1,225 +1,242 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router'; // Import useRouter
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, Dimensions, Modal, TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+const ITEM_WIDTH = width * 0.9;
 
 export default function Content() {
-  const router = useRouter(); // Initialize router inside the component
+  const router = useRouter();
+  const [products, setProducts] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // State for the search input
+
+  useEffect(() => {
+    fetch('https://rancho-agripino.com/database/potteryFiles/fetch_products_buyer.php')
+      .then(response => response.json())
+      .then(data => setProducts(data))
+      .catch(error => console.error('Error fetching products:', error));
+  }, []);
+
+  // Filter products based on the search query
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderItem = ({ item }) => {
+    // Get the first image URL
+    const firstImage = item.image.split(',')[0].trim();
+
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => router.push(`auth/products?id=${item.id}`)}>
+        <Image 
+          source={{ uri: `https://rancho-agripino.com/database/potteryFiles/product_images/${firstImage}` }} 
+          style={styles.image} 
+        />
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={styles.gradient}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.itemTitle}>{item.name}</Text>
+            <Text style={styles.subText}>{item.description}</Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.price}>₱{item.price}</Text>
+              <View style={styles.ratingContainer}>
+                {[...Array(5)].map((_, i) => (
+                  <Ionicons key={i} name={i < item.rating ? "star" : "star-outline"} size={18} color="#FFD700" />
+                ))}
+                <Text style={styles.reviewCount}>({item.reviews})</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.section}>
-        {/* Removed the section header here */}
-        {/* Removed the subText header here */}
-
-        <View style={styles.grid}>
-          {/* Item 1 */}
-          <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg' }}
-              style={styles.image}
-            />
-            <Text style={styles.itemTitle}>BANGA</Text>
-            <Text style={styles.subText}>Kainang ng Aso</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>₱ 125</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/products')} // Use router to navigate
-                style={styles.buttonSmall}>
-                <Text style={styles.buttonSmallText}>View</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>★★★★★</Text>
-              <Text style={styles.subText}>(10)</Text>
-            </View>
-          </View>
-
-          {/* Item 2 */}
-          <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://placehold.co/300x400' }}
-              style={styles.image}
-            />
-            <Text style={styles.itemTitle}>BANGA</Text>
-            <Text style={styles.subText}>Kainang ng Aso</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>₱ 195</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/')}
-                style={styles.buttonSmall}>
-                <Text style={styles.buttonSmallText}>View</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>★★★★★</Text>
-              <Text style={styles.subText}>(10)</Text>
-            </View>
-          </View>
-
-          {/* Item 3 */}
-          <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://placehold.co/300x400' }}
-              style={styles.image}
-            />
-            <Text style={styles.itemTitle}>BANGA</Text>
-            <Text style={styles.subText}>Kainang ng Aso</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>₱ 145</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/')}
-                style={styles.buttonSmall}>
-                <Text style={styles.buttonSmallText}>View</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>★★★★★</Text>
-              <Text style={styles.subText}>(2)</Text>
-            </View>
-          </View>
-
-          {/* Item 4 */}
-          <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://placehold.co/300x400' }}
-              style={styles.image}
-            />
-            <Text style={styles.itemTitle}>BANGA</Text>
-            <Text style={styles.subText}>Kainang ng Aso</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>₱ 180</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/products')}
-                style={styles.buttonSmall}>
-                <Text style={styles.buttonSmallText}>View</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>★★★★☆</Text>
-              <Text style={styles.subText}>(5)</Text>
-            </View>
-          </View>
-
-          {/* Item 5 */}
-          <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://placehold.co/300x400' }}
-              style={styles.image}
-            />
-            <Text style={styles.itemTitle}>BANGA</Text>
-            <Text style={styles.subText}>Kainang ng Aso</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>₱ 200</Text>
-              <TouchableOpacity 
-                onPress={() => router.push('auth/')}
-                style={styles.buttonSmall}>
-                <Text style={styles.buttonSmallText}>View</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>★★★☆☆</Text>
-              <Text style={styles.subText}>(7)</Text>
-            </View>
+    <View style={styles.container}>
+      {/* Search Bar */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search products..."
+        value={searchQuery}
+        onChangeText={setSearchQuery} // Update search query as the user types
+      />
+      
+      <Text style={styles.header}>Trending Products</Text>
+      <FlatList
+        data={filteredProducts} // Show only filtered products
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
+      />
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Item added to cart!</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </Modal>
+    </View>
   );
 }
 
+
 const styles = StyleSheet.create({
+  searchInput: {
+    marginTop: 100,
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingLeft: 10,
+    marginBottom: 20,
+  },
   container: {
+    flex: 1,
     padding: 16,
-    backgroundColor: '#f9fafb', // Light background color for better contrast
+    backgroundColor: '#f8f9fa',
   },
   header: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#171717', // Primary color
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 24,
+    textAlign: 'left',
+    letterSpacing: 0.5,
   },
-  section: {
-    marginTop: 40,
-  },
-  sectionHeader: {
-    fontSize: 28,
-    fontWeight: '700', // Bolder header for emphasis
-    color: '#069906', // Secondary color
-    top: 50,
-  },
-  subText: {
-    color: '#52525b', // Slightly darker muted color for subtext
-    marginBottom: 16,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 16,
-    top:20,
-    
+  listContainer: {
+    paddingBottom: 20,
   },
   card: {
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#e2e8f0', // Softer border color for a clean look
-    borderRadius: 12, // Rounded corners for modern look
-    padding: 16,
-    backgroundColor: '#ffffff', // Card background color
-    marginBottom: 16,
-    shadowColor: '#000', // Add subtle shadow for depth
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3, // For Android shadow
-    
+    width: ITEM_WIDTH,
+    height: 350,
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
   image: {
     width: '100%',
-    height: 160,
-    borderRadius: 12,
-    marginBottom: 12, // Add space below the image
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '75%',
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  infoContainer: {
+    justifyContent: 'flex-end',
   },
   itemTitle: {
-    marginTop: 8,
-    fontWeight: '600',
-    fontSize: 16, // Larger item title
-    color: '#1f2937', // Darker text color for better readability
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  subText: {
+    fontSize: 18,
+    color: '#e0e0e0',
+    marginBottom: 12,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginBottom: 16,
   },
   price: {
-    fontSize: 18,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#059669', // Eye-catching price color
+    color: '#4CAF50',
   },
-  ratingRow: {
+  ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
   },
-  rating: {
-    color: '#fbbf24',
-    marginRight: 4,
+  reviewCount: {
+    marginLeft: 6,
     fontSize: 16,
+    color: '#e0e0e0',
   },
-  buttonSmall: {
-    backgroundColor: '#069906',
-    paddingVertical: 6, // Adjusted padding for button
-    paddingHorizontal: 12,
-    borderRadius: 8,
+  button: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 30,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonSmallText: {
-    color: '#ffffff',
+  buttonText: {
+    color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14, // Slightly larger font for buttons
+    fontSize: 18,
+    letterSpacing: 0.5,
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }
 });

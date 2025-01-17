@@ -1,11 +1,7 @@
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-
-const messages = [
-  { id: '1', name: 'Ronnie Bulauan', lastMessage: 'Ano size netong Banga boss?', timestamp: '10:30 AM', profilePic: 'https://scontent.fmnl17-2.fna.fbcdn.net/v/t39.30808-6/449981890_1575169576393143_1393559107253070735_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGJlmm0bjKEsd1NVOugEkCeDRfONeGNz3QNF8414Y3PdAqjwVNsVSqMEMVEy6KAXNlsYshNVpf65e1qNgPOFdnx&_nc_ohc=dAxytuuaW0cQ7kNvgHVj9Js&_nc_ht=scontent.fmnl17-2.fna&oh=00_AYBB5FhtNQOPxpwu_TQuDSyA_NDCqujHFKDOOyLAyGgbcA&oe=66CA4CE2' },
-];
 
 const MessageItem = ({ name, lastMessage, timestamp, profilePic, onPress }) => (
   <TouchableOpacity onPress={onPress} style={styles.messageItem}>
@@ -21,29 +17,51 @@ const MessageItem = ({ name, lastMessage, timestamp, profilePic, onPress }) => (
 );
 
 export default function MessageScreen() {
+  const [messages, setMessages] = useState([]);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const userData = JSON.parse(sessionStorage.getItem("userData"));
+        const userId = userData ? userData.id : null; // Get the current user's ID
+        
+        const response = await fetch(`https://rancho-agripino.com/database/potteryFiles/fetch_user_messages_from_seller.php?user_id=${userId}`);
+        const data = await response.json();
+        
+        setMessages(data);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+    
+    fetchMessages();
+  }, []);
+
 
   const renderItem = ({ item }) => (
     <MessageItem
-      name={item.name}
-      lastMessage={item.lastMessage}
-      timestamp={item.timestamp}
-      profilePic={item.profilePic}
-      onPress={() => router.push('auth/message')}
+      name={item.name}               // use "name" here
+      lastMessage={item.lastMessage}  // use "lastMessage" here
+      timestamp={item.timestamp}      // use "timestamp" here
+      profilePic={item.profile_pic}   // use "profile_pic" here
+      onPress={() => router.push(`auth/message?seller_id=${item.akongID}&oder_id=`)}
     />
   );
+  
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FontAwesome5 name="envelope" size={24} color="black" />
+        <FontAwesome5 name="envelope" size={24} color="#069906" />
         <Text style={styles.headerText}>Messages</Text>
       </View>
       <FlatList
         data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent} 
+        keyExtractor={(item) => item.sender_id.toString()} // Use recipient_id as key
+
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );

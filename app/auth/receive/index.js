@@ -1,18 +1,43 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal } from 'react-native';
-import React, { useState } from 'react';
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-
-const initialPaymentData = [
-  { id: '1', name: 'Item 1', price: '₱239.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Aso', quantity: 4 },
-  { id: '2', name: 'Item 2', price: '₱200.00', discountedPrice: '₱180.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Pusa', quantity: 1 },
-];
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  Modal,
+} from "react-native";
+import React, { useState, useEffect } from "react";
+import { FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function ToPayScreen() {
   const router = useRouter();
-  const [paymentData, setPaymentData] = useState(initialPaymentData);
+  const [orders, setOrders] = useState([]); // State for orders
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
+
+  useEffect(() => {
+    // Fetch orders data
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `https://rancho-agripino.com/database/potteryFiles/fetch_order_status.php?order_status=2&buyerId=${buyerId}`
+        );
+        const data = await response.json();
+        setOrders(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        setOrders([]);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const handleOrderReceived = (itemId) => {
     setSelectedItemId(itemId);
@@ -20,7 +45,9 @@ export default function ToPayScreen() {
   };
 
   const confirmOrderReceived = () => {
-    setPaymentData(prevData => prevData.filter(item => item.id !== selectedItemId));
+    setOrders((prevOrders) =>
+      prevOrders.filter((item) => item.id !== selectedItemId)
+    );
     setModalVisible(false);
   };
 
@@ -34,11 +61,18 @@ export default function ToPayScreen() {
         <Text style={styles.cardHeaderText}>To Receive</Text>
       </View>
       <View style={styles.itemContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <Image
+          source={{
+            uri: `http://localhost/pottery/product_images/${
+              item.imagesPath.split(",")[0].trim()
+            }`,
+          }}
+          style={styles.itemImage}
+        />
         <View style={styles.itemDetails}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemName}>{item.product_name}</Text>
           <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemQuantity}>Quantity: x{item.quantity}</Text>
+          <Text style={styles.itemQuantity}>Quantity: x{item.quantity_carted}</Text>
           <Text style={styles.itemPrice}>Price: {item.price}</Text>
         </View>
       </View>
@@ -47,15 +81,21 @@ export default function ToPayScreen() {
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.receivedButton} onPress={() => handleOrderReceived(item.id)}>
+        <TouchableOpacity
+          style={styles.receivedButton}
+          onPress={() => handleOrderReceived(item.id)}
+        >
           <Text style={styles.receivedButtonText}>Order Received</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '')) * item.quantity), 0);
-  const itemCount = paymentData.reduce((count, item) => count + item.quantity, 0);
+  const totalAmount = orders.reduce(
+    (total, item) => total + parseFloat(item.price) * item.quantity_carted,
+    0
+  );
+  const itemCount = orders.reduce((count, item) => count + item.quantity_carted, 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -66,9 +106,9 @@ export default function ToPayScreen() {
         <Text style={styles.headerTitleText}>To Receive</Text>
       </View>
       <FlatList
-        data={paymentData}
+        data={orders}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         style={styles.list}
         showsVerticalScrollIndicator={false}
       />
@@ -87,8 +127,6 @@ export default function ToPayScreen() {
           <Text style={styles.totalText}>₱{totalAmount.toFixed(2)}</Text>
         </View>
       </View>
-
-      {/* Modal for Order Received Confirmation */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -98,9 +136,14 @@ export default function ToPayScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Confirm Order Received</Text>
-            <Text style={styles.modalMessage}>Are you sure you want to mark this order as received?</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to mark this order as received?
+            </Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelModalButton]} onPress={cancelOrderReceived}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={cancelOrderReceived}
+              >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalButton} onPress={confirmOrderReceived}>
@@ -113,7 +156,6 @@ export default function ToPayScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

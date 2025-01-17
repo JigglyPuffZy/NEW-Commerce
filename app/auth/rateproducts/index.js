@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, SafeAreaView, ScrollView, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; // Import MaterialIcons
 import { useRouter } from 'expo-router'; // Import useRouter for navigation
-
+import { useRoute } from '@react-navigation/native';
 export default function Widget() {
+    const router = useRouter();
+    const route = useRoute(); // Use useRoute to get route params
+    const { itemId } = route.params;  // Destructure itemId from route.params
+    
+
+
+// Destructure itemId
     const [rating, setRating] = useState(0);
     const [comments, setComments] = useState(''); // State for comments
     const [modalVisible, setModalVisible] = useState(false);
-    const router = useRouter();
+
+    
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
 
     const getRatingIcon = (rating) => {
         switch (rating) {
@@ -20,15 +30,48 @@ export default function Widget() {
         }
     };
 
-    const handleSubmit = () => {
-        setModalVisible(true); // Show the modal
+    const handleSubmit = async () => {
+        if (!itemId || rating === 0) {
+            alert("Please provide a rating before submitting!");
+            return;
+        }
+
+        // Prepare the data to be sent to the server
+        const ratingData = {
+            order_id: itemId,
+            rating: rating,
+            comments: comments,
+            buyerId: buyerId,
+        };
+
+        try {
+            // Replace this URL with your server endpoint
+            const response = await fetch('https://rancho-agripino.com/database/potteryFiles/save_rating.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(ratingData),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setModalVisible(true); // Show the success modal
+            } else {
+                alert('Failed to save rating. Please try again.');
+            }
+        } catch (error) {
+            console.error("Error saving rating:", error);
+            alert('Error saving rating. Please try again.');
+        }
     };
 
     const handleOkay = () => {
         setRating(0); // Reset the rating
         setComments(''); // Clear comments
         setModalVisible(false); // Hide the modal
-        router.push('/auth/rate'); // Navigate to the desired route
+        router.push('/auth/home'); // Navigate to the home screen or wherever you want
     };
 
     const handleClose = () => {
@@ -95,7 +138,6 @@ export default function Widget() {
         </SafeAreaView>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,

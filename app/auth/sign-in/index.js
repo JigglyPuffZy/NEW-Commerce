@@ -2,6 +2,8 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, Scro
 import React, { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { getPhpFilePath } from '../utils/pathHelper';
+import $ from 'jquery';
 
 export default function Index() {
   const navigation = useNavigation();
@@ -11,7 +13,7 @@ export default function Index() {
   const [scaleAnim] = useState(new Animated.Value(1));
   const [selectedRole, setSelectedRole] = useState(null);
   const [buttonDisabled, setButtonDisabled] = useState(true);
-  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -39,19 +41,59 @@ export default function Index() {
     }
   }, [selectedRole, fadeAnim]);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setErrorMessage('');
-    if (!email || !password) {
-      setErrorMessage('Email and password are required.');
+  
+    if (!contact || !password) {
+      setErrorMessage('Phone number and password are required.');
       return;
     }
 
-    if (selectedRole === 'buyer') {
-      router.push('auth/home');
-    } else if (selectedRole === 'seller') {
-      router.push('auth/seller');
+    console.log("This is the contact", contact)
+    console.log("This is the password", password)
+    console.log("This is the role", selectedRole)
+
+  
+    const loginUrl = getPhpFilePath('login.php'); // URL
+  
+    try {
+      const formData = new URLSearchParams();
+      formData.append('contact', contact);
+      formData.append('password', password);
+      formData.append('role', selectedRole);
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+      console.log('Received response READY for backend:', response);
+  // Ensure the response is valid
+  if (response.ok) {
+    const result = await response.json();  // Parsing the response as JSON
+    console.log('Parsed response JSON:', result);  // Debugging log
+
+    if (result.success) {
+      sessionStorage.setItem('userData', JSON.stringify(result.user_data)); // Store user data
+      if (selectedRole === 'buyer') {
+        router.push('auth/home');
+      } else if (selectedRole === 'seller') {
+        router.push('auth/seller');
+      }
+    } else {
+      setErrorMessage(result.message || 'Invalid login credentials.');
+    }
+  } else {
+    console.log('Response not ok:', response);  // If the response isn't ok
+    setErrorMessage('Failed to login. Please try again.');
+  }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setErrorMessage('An error occurred while logging in.');
     }
   };
+
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -78,15 +120,16 @@ export default function Index() {
         {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Phone Number</Text>
           <View style={styles.inputCard}>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
-              keyboardType="email-address"
+              placeholder=""
+              keyboardType=""
               autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
+              value={contact}
+              onChangeText={setContact}
+
             />
           </View>
         </View>
@@ -162,150 +205,164 @@ export default function Index() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
   },
   scrollViewContainer: {
-    padding: 24,
+    padding: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontFamily: 'Poppins-Bold',
-    fontSize: 32,
-    color: '#1F2937',
-    marginBottom: 10,
+    fontSize: 36,
+    color: '#1A1A1A',
+    marginBottom: 12,
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontFamily: 'Poppins-Regular',
-    fontSize: 16,
-    color: '#4B5563',
-    marginBottom: 30,
+    fontSize: 18,
+    color: '#666666',
+    marginBottom: 40,
     textAlign: 'center',
   },
   errorMessage: {
-    color: '#E11D48',
+    color: '#FF4444',
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
+    backgroundColor: '#FFE8E8',
+    padding: 10,
+    borderRadius: 8,
+    width: '100%',
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 25,
   },
   label: {
     fontFamily: 'Poppins-Medium',
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 6,
+    fontSize: 15,
+    color: '#333333',
+    marginBottom: 8,
+    letterSpacing: 0.3,
   },
   inputCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#E9ECEF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   input: {
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
-    color: '#1F2937',
+    color: '#212529',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#E9ECEF',
   },
   passwordInput: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
-    color: '#1F2937',
+    color: '#212529',
   },
   eyeIcon: {
-    paddingLeft: 12,
+    paddingLeft: 15,
   },
   roleContainer: {
     width: '100%',
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 10,
-    top:10,
+    marginBottom: 35,
+    padding: 25,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#E9ECEF',
   },
   roleSelectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+    marginTop: 10,
   },
   roleButton: {
     flex: 1,
-    paddingVertical: 14,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 10,
-    marginHorizontal: 10,
+    paddingVertical: 16,
+    backgroundColor: '#F1F3F5',
+    borderRadius: 15,
+    marginHorizontal: 8,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedRole: {
-    backgroundColor: '#BBF7D0',
+    backgroundColor: '#E3FCE3',
     borderColor: '#069906',
     borderWidth: 2,
+    shadowColor: '#069906',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   radioLabel: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 16,
     color: '#1F2937',
   },
   signInButtonContainer: {
-    marginTop: 20,
-    backgroundColor: '#069906',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 6,
+    width: '100%',
+    marginTop: 25,
+    shadowColor: '#069906',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
   },
   signInButton: {
     backgroundColor: '#069906',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    padding: 15,
-    paddingHorizontal:120,
-    paddingVertical:-120,
-  
+    borderRadius: 15,
+    padding: 18,
+    width: '100%',
   },
   buttonDisabled: {
-    backgroundColor: '#069906',
+    backgroundColor: '#82C782',
   },
   signInButtonText: {
     fontFamily: 'Poppins-Bold',
     fontSize: 18,
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   createAccountButton: {
-    marginTop: 16,
+    marginTop: 20,
     paddingVertical: 16,
-    bottom:10,
   },
   createAccountButtonText: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: 'Poppins-SemiBold',
     fontSize: 16,
     color: '#069906',
+    textDecorationLine: 'underline',
   },
 });
 

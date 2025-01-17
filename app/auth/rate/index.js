@@ -1,18 +1,43 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, SafeAreaView, Modal, Pressable } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-
-const initialPaymentData = [
-  { id: '1', name: 'Item 1', price: '₱239.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Aso', quantity: 4 },
-  { id: '2', name: 'Item 2', price: '₱200.00', discountedPrice: '₱180.00', image: 'https://i.pinimg.com/236x/bd/2f/91/bd2f91891f7f4cb44da0473401273fd7.jpg', description: 'Banga ng Pusa', quantity: 1 },
-];
 
 export default function ToPayScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [itemToRate, setItemToRate] = useState(null);
-  const [paymentData, setPaymentData] = useState(initialPaymentData);
+
+  const userData = JSON.parse(sessionStorage.getItem("userData"));
+  const buyerId = userData ? userData.id : null;
+
+  const [orders, setOrders] = useState([]);
+
+  // Fetch orders data
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `https://rancho-agripino.com/database/potteryFiles/fetch_order_status.php?order_status=3&buyerId=${buyerId}`
+        );
+        const data = await response.json();
+        setOrders(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        setOrders([]);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const handleRateItem = () => {
+    if (itemToRate) {
+      router.push({ pathname: 'auth/rateproducts', params: { itemId: itemToRate } });
+      setItemToRate(null);
+      setModalVisible(false);
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -20,21 +45,26 @@ export default function ToPayScreen() {
         <Text style={styles.cardHeaderText}>To Rate</Text>
       </View>
       <View style={styles.itemContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <Image
+          source={{
+            uri: `https://rancho-agripino.com/database/potteryFiles/product_images/${item.imagesPath.split(",")[0].trim()}`,
+          }}
+          style={styles.itemImage}
+        />
         <View style={styles.itemDetails}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemName}>{item.product_name}</Text>
           <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+          <Text style={styles.itemQuantity}>Quantity: x{item.quantity_carted}</Text>
         </View>
       </View>
-      <Text style={styles.originalPrice}>{item.price}</Text>
+      <Text style={styles.originalPrice}>₱{item.price}</Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.contactButton}>
           <FontAwesome name="envelope" size={16} color="#fff" />
           <Text style={styles.buttonText}> Contact Seller</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.rateButton} 
+        <TouchableOpacity
+          style={styles.rateButton}
           onPress={() => {
             setItemToRate(item.id);
             setModalVisible(true);
@@ -47,16 +77,11 @@ export default function ToPayScreen() {
     </View>
   );
 
-  const handleRateItem = () => {
-    if (itemToRate) {
-      router.push('auth/rateproducts');
-      setItemToRate(null);
-      setModalVisible(false);
-    }
-  };
-
-  const totalAmount = paymentData.reduce((total, item) => total + (parseFloat(item.price.replace('₱', '')) * item.quantity), 0);
-  const itemCount = paymentData.reduce((count, item) => count + item.quantity, 0);
+  const totalAmount = orders.reduce(
+    (total, item) => total + parseFloat(item.price) * item.quantity_carted,
+    0
+  );
+  const itemCount = orders.reduce((count, item) => count + item.quantity_carted, 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,27 +95,23 @@ export default function ToPayScreen() {
         <Text style={styles.headerTitleText}>To Rate</Text>
       </View>
       <FlatList
-        data={paymentData}
+        data={orders}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         style={styles.list}
       />
       <View style={styles.summaryContainer}>
+        <Text style={styles.summaryTitle}>Order Summary</Text>
         <View style={styles.summaryDetail}>
-          <Text style={styles.summaryLabelText}>Item Count:</Text>
+          <Text style={styles.summaryLabelText}>Items Count:</Text>
           <Text style={styles.summaryValueText}>{itemCount}</Text>
         </View>
         <View style={styles.summaryDetail}>
           <Text style={styles.summaryLabelText}>Subtotal:</Text>
           <Text style={styles.summaryValueText}>₱{totalAmount.toFixed(2)}</Text>
         </View>
-        <View style={styles.summaryDetail}>
-          <Text style={styles.summaryLabelText}>Total:</Text>
-          <Text style={styles.totalText}>₱{totalAmount.toFixed(2)}</Text>
-        </View>
       </View>
 
-      {/* Enhanced Modal for Rating Confirmation */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -115,7 +136,6 @@ export default function ToPayScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
